@@ -1,0 +1,7 @@
+center_x=-5.256
+center_y=26.343
+center_z=-2.416
+size_x=29.218
+size_y=17.765
+size_z=20.217
+exhaustiveness=4
