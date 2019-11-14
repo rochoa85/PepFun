@@ -10,8 +10,8 @@ Year: 2019
 
 Third-party tools required:
 
-BioPython: https://biopython.org/wiki/Download
-RDKit: https://github.com/rdkit/rdkit/releases
+BioPython: https://biopython.org/wiki/Download - Ubuntu package: python-rdkit
+RDKit: https://github.com/rdkit/rdkit/releases - Ubuntu package: python-biopython
 """
 
 ########################################################################################
@@ -32,6 +32,7 @@ __email__ = "rodrigo.ochoa@udea.edu.co"
 import math
 import itertools
 import subprocess
+import argparse
 import re
 import os
 import numpy as np
@@ -43,8 +44,6 @@ from Bio import pairwise2
 from Bio.SubsMat import MatrixInfo as matlist
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
 from Bio.PDB import *
-from Bio.Blast import NCBIWWW
-from Bio.Blast import NCBIXML
 from Bio import SeqIO
 
 # RDKit
@@ -55,18 +54,9 @@ from rdkit.Chem import Crippen
 from rdkit.Chem import Lipinski
 from rdkit.Chem import Descriptors
 
-# # PyRosetta
-# from pyrosetta import *
-# from pyrosetta.teaching import *
-# init()
-
 # Local scripts
 # import conformers
 
-# PeptideMatch
-#import swagger_client 
-#from swagger_client.rest import ApiException
-#from pprint import pprint
 
 ########################################################################################
 # General Functions
@@ -134,18 +124,15 @@ def generate_sequences(long_peptide,aa_type="natural"):
     if aa_type=="natural":
         # Generate the combinatorial library
         for i in itertools.product(natural, repeat=long_peptide):
-            f='.'.join(map(str, i))
-            frags.append('.'.join(map(str, i)))
+            frags.append(''.join(map(str, i)))
     elif aa_type=="d_aminoacids":
         # Generate the combinatorial library
         for i in itertools.product(d_aminoacids, repeat=long_peptide):
-            f='.'.join(map(str, i))
-            frags.append('.'.join(map(str, i)))
+            frags.append(''.join(map(str, i)))
     elif aa_type=="combined":
         # Generate the combinatorial library
         for i in itertools.product(combined, repeat=long_peptide):
-            f='.'.join(map(str, i))
-            if "[" in f: frags.append('.'.join(map(str, i)))
+            if "[" in f: frags.append(''.join(map(str, i)))
     else:
         print "The type of amino acid is invalid"
         
@@ -272,18 +259,23 @@ class peptide_sequence:
     Class with functions to perform different type of analysis using a peptide sequence as an object
     """
     
-    # PENDIENTE
-    # Calcular protein scales y dar la opcion de compararlas segun la ventana
-    # Adaptar funciones de PepLibGen - Synth Rules
-    # Adaptar la generacion de secuencias aleatorias
-    # Agregar la helical wheel
-    
     def __init__(self,sequence):
+        """
+        Inititalize the class calculating some basic properties
+        
+        Arguments:
+        sequence -- Peptide sequence
+        
+        Return
+        Based on the sequence, the class start with some counters, a neutral pH, the peptide length and the SMILES representation
+        """
         self.sequence=sequence
         self.pH=7
         self.solubility_rules_failed=0
         self.length_peptide=len(self.sequence)
         self.synthesis_rules_failed=0
+        
+        # Loop to create the SMILES
         connect_smiles='O'
         for res in sequence:
              connect_smiles=connect_smiles[:-1]
@@ -334,60 +326,81 @@ class peptide_sequence:
                 self.dismatch+=1
         
         self.match=len(self.sequence)-self.dismatch
-    
-    ############################################################################
-    def pairwise_alignment(self,peptide_to_match):
-        """
-        """
-        alignment = pairwise2.align.globalxx(self.sequence,peptide_to_match)
-        print alignment
-        # TODO: Fix the response
-    
-    ############################################################################
-    def blast_online(self):
-        """
-        """
-        # Create a temporal fasta file with the sequence
-        fasta_file=open("%s.fasta" %self.sequence,"wb")
-        fasta_file.write(">sequence\n%s" %self.sequence)
-        fasta_file.close()
         
-        record = SeqIO.read("%s.fasta" %self.sequence, format="fasta")
-        result_handle = NCBIWWW.qblast("blastp", "nr", record.format("fasta"), word_size=2, expect=20000.0, matrix_name="PAM30", gapcosts="9 1")
-        os.system("rm %s.fasta" %self.sequence)
-        b_record = NCBIXML.read(result_handle)
+    ############################################################################
+    def similarity_pair(self,peptide1,peptide2,matrix):
+        """
+        Function to calculate similarity between two peptide sequences
         
-        # Parse the results
-        for alignment in b_record.alignments:
-            for hsp in alignment.hsps:
-                #if hsp.expect < E_VALUE_THRESH:
-                print hsp.identities
-                print hsp.positives
-                print hsp.gaps
-                print hsp.align_length
-                print hsp.strand
-                print hsp.query_start
-                print '****Alignment****' 
-                print 'sequence: %s' % alignment.title
-                print 'length: %i' % alignment.length
-                print 'e value: %f' % hsp.expect
-                print hsp.query[0:75] + '...'
-                print hsp.match[0:75] + '...'
-                print hsp.sbjct[0:75] + '...'
-                break
-        #TODO: Fix the response with percentages
+        Arguments:
+        peptide1 -- Sequence of one of the input peptides
+        peptide2 -- Sequence of the second input peptide
+        matrix -- BioPython matrix chosen for running the analysis
+        
+        Return:
+        sim_val -- similarity based on the aligments between the peptides and themselves - Max value is 1
+        """
+        # Alignment between peptide1 and peptide2
+        pep=peptide_sequence(peptide1)
+        pep.align_position_matrix(peptide2,matrix)
+        score1_2=pep.score_matrix
+        
+        # Alignment between peptide1 with itself
+        pep.align_position_matrix(peptide1,matrix)
+        score1_1=pep.score_matrix
+        
+        # Alignment between peptide2 with itself
+        pep2=peptide_sequence(peptide2)
+        pep2.align_position_matrix(peptide2,matrix)
+        score2_2=pep2.score_matrix
+        
+        # Calculate similarity value
+        sim_val=float(score1_2)/math.sqrt(float(score1_1*score2_2))
+        
+        # Return similarity
+        return sim_val
+    
+    ############################################################################    
+    def similar_smiles(self,peptide_to_match):
+        """
+        Calculate similarity but using SMILES representations of the peptides
+        
+        Arguments:
+        peptide_to_match -- peptide sequence that will be compared
+        
+        Return:
+        SMILES similarity based on Morgan Fingerprints and Tanimoto coefficient
+        """
+        
+        # Generate molecule from sequence
+        mol1 = Chem.MolFromSmiles(self.smiles)
+        mol1.SetProp("_Name",self.sequence)
+        
+        connect_smiles='O'
+        for res in peptide_to_match:
+             connect_smiles=connect_smiles[:-1]
+             smiles=aminoacidSMILES(res)          
+             connect_smiles=connect_smiles+smiles
+
+        mol2 = Chem.MolFromSmiles(connect_smiles)
+        mol2.SetProp("_Name",peptide_to_match)
+        
+        # Calculate the fingerprints and the similarity
+        fp1=AllChem.GetMorganFingerprintAsBitVect(mol1,2,2048)
+        fp2=AllChem.GetMorganFingerprintAsBitVect(mol2,2,2048)
+        
+        self.smiles_similarity=DataStructs.TanimotoSimilarity(fp1,fp2)
+
     ############################################################################
     def compute_peptide_charges(self,pH_internal=7):
         """
         Function to calculate the average net charge based on pka values
         
         Arguments:
-        Sequence - amino acid sequence of the peptide
-        pH - By default is 7
+        pH_internal -- By default is 7
         
         Return:
-        The net charge based on pka values recorded from ...
-        PENDING - Get a plot of charge vs time
+        The net charge based on reported pka values
         """
         # Set the general variables and pka terms
         self.pH=pH_internal
@@ -417,64 +430,21 @@ class peptide_sequence:
         """
         Function to calculate some molecular properties based on RDKit functionalities
         
-        Arguments:
-        Sequence - amino acid sequence of the peptide
-        
         Return:
-        Static physico-chemical properties: molecular weigth, crippen logP, number of hydrogen bond acceptors and donors
-        SMILES - 2D representation of the molecule
+        Static physico-chemical properties: molecular weight, crippen logP, number of hydrogen bond acceptors and donors
         """
         
         # Generate molecule from sequence
-        p = subprocess.Popen(['java', '-jar','auxiliar/seq_smiles_peptides.jar','-i',self.sequence], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        self.smiles, err = p.communicate()
         mol = Chem.MolFromSmiles(self.smiles)
         mol.SetProp("_Name",self.sequence)
         
-        # # Create an rdkit object with the peptide sequence using HELM functionality
-        # pep=".".join(list(self.sequence))
-        # mol = Chem.MolFromHELM("PEPTIDE1{%s}$$$$" %pep)
-        
-        # Generate the smiles
-        #self.smiles=Chem.MolToSmiles(mol)
+        # Calculate the descriptors
         self.num_hdonors = Lipinski.NumHDonors(mol)
         self.num_hacceptors = Lipinski.NumHAcceptors(mol)
         self.mol_weight = Descriptors.MolWt(mol)
         self.mol_logp = Crippen.MolLogP(mol)
     
-    ############################################################################    
-    def similar_smiles(self,peptide_to_match):
-        """
-        """
-        # Generate molecule from sequence
-        mol1 = Chem.MolFromSmiles(self.smiles)
-        mol1.SetProp("_Name",self.sequence)
-        
-        connect_smiles='O'
-        for res in peptide_to_match:
-             connect_smiles=connect_smiles[:-1]
-             smiles=aminoacidSMILES(res)          
-             connect_smiles=connect_smiles+smiles
 
-        mol2 = Chem.MolFromSmiles(connect_smiles)
-        mol2.SetProp("_Name",peptide_to_match)
-        
-        # # Create an rdkit object with the peptide sequence using HELM functionality
-        # pep1=".".join(list(self.sequence))
-        # pep2=".".join(list(peptide_to_match))
-        # mol1 = Chem.MolFromHELM("PEPTIDE1{%s}$$$$" %pep1)
-        # mol2 = Chem.MolFromHELM("PEPTIDE1{%s}$$$$" %pep2)
-        # # Add the sequence as a name in the mol object
-        # sequence1=Chem.MolToSequence(mol1)
-        # mol1.SetProp("_Name",sequence1)
-        # sequence2=Chem.MolToSequence(mol2)
-        # mol2.SetProp("_Name",sequence2)
-        
-        # Calculate the fingerprints and the similarity
-        fp1=AllChem.GetMorganFingerprintAsBitVect(mol1,2,2048)
-        fp2=AllChem.GetMorganFingerprintAsBitVect(mol2,2,2048)
-        
-        self.smiles_similarity=DataStructs.TanimotoSimilarity(fp1,fp2)
     
     ############################################################################           
     def calculate_properties_from_sequence(self):
@@ -505,9 +475,6 @@ class peptide_sequence:
     def solubility_rules(self):
         """
         Function to calculate some solubility rules based on recommendations of http://bioserv.rpbs.univ-paris-diderot.fr/services/SolyPep/
-        
-        Arguments:
-        sequence - amino acid sequence of the peptide
         
         Output:
         solubility_rules_failed - return the number of rules faild based on the criteria
@@ -558,13 +525,10 @@ class peptide_sequence:
     ############################################################################
     def synthesis_rules(self):
         """
-        Function to check some synthesis rules based on previous recommendations
-        
-        Arguments:
-        Sequence - amino acid sequence of the peptide
+        Function to check some synthesis rules based on empirical recommendations
         
         Return:
-        
+        synthesis_rules_failed - return the number of rules faild based on the criteria
         """
         # Presence of forbiden motifs
         forbidden_motifs = {'2-prolines':r'[P]{3,}','DG-DP':r'D[GP]','N-Q-Nterminal':r'^[NQ]',}
@@ -588,86 +552,49 @@ class peptide_sequence:
             if aa in aa_oxidation:
                 self.synthesis_rules_failed+=1
                 break
-    
-    
-    ############################################################################
-    def search_matches(self):
-        """
-        Function to check some synthesis rules based on previous recommendations
         
-        Arguments:
-        Sequence - amino acid sequence of the peptide
-        
-        Return:
-        
-        """
-        # Presence of forbiden motifs
-        forbidden_motifs = {'2-prolines':r'[P]{3,}','DG-DP':r'D[GP]','N-Q-Nterminal':r'^[NQ]',}
-        for motif in forbidden_motifs:
-            if re.search(forbidden_motifs[motif],self.sequence):
-                self.synthesis_rules_failed+=1
-    
-    ############################################################################
-    def helical_wheel(self):
-        """
-        """
-        
-        # Create a temporal fasta file with the sequence
-        fasta_file=open("%s.fasta" %self.sequence,"wb")
-        fasta_file.write(">sequence\n%s" %self.sequence)
-        fasta_file.close()
-        
-        # Call the program
-        os.system("auxiliar/pepwheel -sequence %s.fasta -graph png" %self.sequence)
-        os.system("mv pepwheel.1.png {peptide}_wheel.png; rm {peptide}.fasta".format(peptide=self.sequence))
-        
-    
     ############################################################################
     def generate_conformer(self):
         """
+        Function to generate basic conformer using RDKit
+        
+        Return:
+        Structure predicted in sdf format
+        NOTE: using OpenBabel the structure can be converted to PDB format using:
+        babel -isdf structure_{peptide}.sdf -opdb structure_{peptide}.pdb
         """
         # Generate molecule from smiles
         mol = Chem.MolFromSmiles(self.smiles)
         mol.SetProp("_Name",self.sequence)
         
-        print "Generating the basic conformer for peptide %s" %self.sequence
+        print "Generating the basic conformer for peptide {}".format(self.sequence)
         
+        # Use UFF force field
         AllChem.EmbedMolecule(mol)
         AllChem.UFFOptimizeMolecule(mol)
         writer = AllChem.SDWriter("structure_%s.sdf" %self.sequence)
         writer.write(mol)
-        
-        # Convert to PDB file
-        os.system("babel -isdf structure_{peptide}.sdf -opdb structure_{peptide}.pdb".format(peptide=self.sequence))
-        
-        # Generation mmff - for more than 7 rotatable bonds  
-        #engine = conformers.ConformerGenerator(pool_multiplier=200, rmsd_threshold=0.3, force_field='mmff')
-        # engine = conformers.ConformerGenerator(rmsd_threshold=0.3, force_field='mmff')
-        # mol2 = engine.generate_conformers(mol) 
-        # pdb_structure=open("structure_%s.mol" %self.sequence,"wb")
-        # pdb_structure.write(Chem.MolToMolBlock(mol2))
-        # pdb_structure.close()
-        
-    ################################################################
-    
-    def generate_structure_modpep(self):
-        """
-        """
-        # Create a temporal fasta file with the sequence
-        fasta_file=open("%s.fasta" %self.sequence,"wb")
-        fasta_file.write(">sequence\n%s" %self.sequence)
-        fasta_file.close()
-        
-        os.system("auxiliar/modpep {peptide}.fasta structure_{peptide}.pdb -n 1 -L auxiliar/".format(peptide=self.sequence))
-        os.system("sed -i 's# A  # C  #g' structure_{peptide}.pdb; rm {peptide}.fasta".format(peptide=self.sequence))
                 
-    ############################################################################
+########################################################################################
     
-
 class peptide_structure:
     
-    # Initializer
+    """
+    Class with functions to perform different type of analysis using a peptide structure alone or in complex with a protein
+    """
+
     def __init__(self,pdb_file,chain):
+        """
+        Inititalize the class calculating some basic properties
+        
+        Arguments:
+        pdb_file -- PDB file with the required information
+        chain -- chain containing the peptide in the file
+        
+        Return:
+        Based on the structure, the class start with some counters, the sequence derived from the structure, its lenght and a dictionary with the aa positions
+        """
+        
         self.pdb_file=pdb_file
         self.chain=chain
         self.aminoacids_back={"ALA":"A","ASP":"D","GLU":"E","PHE":"F","HIS":"H","ILE":"I","LYS":"K","LEU":"L","MET":"M","GLY":"G",
@@ -678,26 +605,38 @@ class peptide_structure:
         self.initial_id_residue=0
         self.positions={}
         
-        # Read the structure
+        # Read the structure in BioPython format
         parser = PDBParser()
         self.reference = parser.get_structure('REF',pdb_file)
         for ch in self.reference[0]:
             if ch.get_id()==chain:
                 for i,residue in enumerate(ch):
                     seq=self.aminoacids_back[residue.get_resname()]
+                    # Save the sequence
                     self.sequence=self.sequence+str(seq)
                     if i==0: self.initial_id_residue=residue.get_full_id()[3][1]
+                    # Save the positions
                     self.positions[i+1]={"aa":str(seq),"full_aa":residue.get_resname()}
         
+        # Store sequence lenght
         self.len_sequence=len(self.sequence)
 
         
     ############################################################################
     
-    # Function to calculate the secondary structure
     def get_secondary_structure(self):
         """
+        Function to calculate the secondary structure and the accessible surface area using the auxiliary program mkdssp
+        NOTE: mkdssp can be downloaded from the website:
+        
+        Return:
+        The dictionary positions will store the calculated data of dssp and the asa values
+        total_dssp will contain the complete predicted secondary structure with the following conventions:
+        B -
+        H - alpha helix
+        E - beta sheets
         """
+        
         model=self.reference[0]
         dssp = DSSP(model,self.pdb_file,dssp='auxiliar/mkdssp')
         self.total_dssp=""
@@ -712,10 +651,16 @@ class peptide_structure:
     
     ############################################################################
     
-    # Function to calculate hydrogen bonds with the other chains
     def get_hydrogen_bonds(self):
         """
+        Function to calculate hydrogen bonds with the other chains
+        
+        Return:
+        Dictionary containing the peptide amino acids and the protein amino acids forming hydrogen bonds
+        File with the predicted hydrogen bonds
         """
+        
+        # Read the protein structure
         model=self.reference[0]
         dssp = DSSP(model,self.pdb_file,dssp='auxiliar/mkdssp')
         self.total_dssp=""
@@ -725,11 +670,10 @@ class peptide_structure:
         list_chains=[]
         reference_position=0
         list_chains.append(list(dssp.keys())[0][0])
-        hbonds_peptide={}
+        self.hbonds_peptide={}
+        
+        # iterate over the dssp keys to store the corresponding hydrogen bonds based on the atoms positions
         for keys in list(dssp.keys()):
-            #print keys
-            # if keys[0] not in list_chains:
-            #     list_chains.append(keys[0])
             if keys[0]==list_chains[-1]:
                 total_index[reference_position+keys[1][1]]=(keys[0],dssp[keys][1],keys[1][1])
                 last_position=reference_position+keys[1][1]
@@ -741,32 +685,47 @@ class peptide_structure:
                 
             if keys[0]==self.chain:
                 position=keys[1][1]
-                #print position
-                #print dssp[keys]
                 amino_name=dssp[keys][1]+str(keys[1][1])
-                if amino_name not in hbonds_peptide: hbonds_peptide[amino_name]=[]
+                if amino_name not in self.hbonds_peptide: self.hbonds_peptide[amino_name]=[]
                 if dssp[keys][6]<-5:
                     interactions_pos=last_position+dssp[keys][6]
-                    #print interactions_pos,total_index[interactions_pos]
-                    hbonds_peptide[amino_name].append(total_index[interactions_pos])
+                    self.hbonds_peptide[amino_name].append(total_index[interactions_pos])
                 if dssp[keys][8]<-5:
                     interactions_pos=last_position+dssp[keys][8]
-                    #print interactions_pos,total_index[interactions_pos]
-                    hbonds_peptide[amino_name].append(total_index[interactions_pos])
+                    self.hbonds_peptide[amino_name].append(total_index[interactions_pos])
                 if dssp[keys][10]<-5:
                     interactions_pos=last_position+dssp[keys][10]
-                    #print interactions_pos,total_index[interactions_pos]
-                    hbonds_peptide[amino_name].append(total_index[interactions_pos])
+                    self.hbonds_peptide[amino_name].append(total_index[interactions_pos])
                 if dssp[keys][12]<-5:
                     interactions_pos=last_position+dssp[keys][12]
-                    #print interactions_pos,total_index[interactions_pos]
-                    hbonds_peptide[amino_name].append(total_index[interactions_pos])
-        print hbonds_peptide
+                    self.hbonds_peptide[amino_name].append(total_index[interactions_pos])
+        
+        # Iterate over the peptide residues to show the hydrogen bonds
+        self.number_hydrogen_bonds=0
+        output_hydrogen_bonds=open("auxiliar/predicted_hbs_{}.txt".format(self.sequence),"w")
+        print "These are the hydrogen bonds detected:"
+        for residue in self.hbonds_peptide:
+            for partners in self.hbonds_peptide[residue]:
+                print "{} interacts with residue {}{} from chain {}".format(residue,partners[1],partners[2],partners[0])
+                output_hydrogen_bonds.write("{} interacts with residue {}{} from chain {}\n".format(residue,partners[1],partners[2],partners[0]))
+                self.number_hydrogen_bonds+=1
+        output_hydrogen_bonds.close()
+    
+    ############################################################################
+    
+    def plot_hydrogen_bonds(self):       
+        """
+        Function to plot the hydrogen bonds using the igraph module of Python.
+        NOTE: Installation instructions: https://igraph.org/python/
+        
+        Return:
+        PNG file with the graph of the hydrogen bonds
+        """
         
         # Generate fragments
         fragment_chains={}
-        for amino in hbonds_peptide:
-            for receptor in hbonds_peptide[amino]:
+        for amino in self.hbonds_peptide:
+            for receptor in self.hbonds_peptide[amino]:
                 chain=receptor[0]
                 if chain not in fragment_chains: fragment_chains[chain]=[]
                 if receptor not in fragment_chains[chain]:
@@ -775,51 +734,28 @@ class peptide_structure:
         for ch in fragment_chains:
             fragment_chains[ch].sort(key=lambda x: x[2])
         
-        # Generate string
-        fragments_final=[]
-        for ch in fragment_chains:
-            for i,element in enumerate(fragment_chains[ch]):
-                if i==0:
-                    frag=element[1]
-                    pos=element[2]
-                else:
-                    if pos+1==element[2]:
-                        frag+=element[1]
-                        pos=element[2]
-                    else:
-                        fragments_final.append(frag)
-                        frag=element[1]
-                        pos=element[2]
-            fragments_final.append(frag)
         
-        print fragment_chains
-        print fragments_final
-        helm_string=""
-        for number,fr in enumerate(fragments_final):
-            helm_string+="PEPTIDE%d{%s}|" %(number+1,".".join(fr))
-        print helm_string[:-1]
-        
-        ###################################################
-        # Get graph order
-        names=[0]*len(hbonds_peptide)
+        # Get graph order and properties of the nodes and edges
+        names=[0]*len(self.hbonds_peptide)
         pep_interactions=[]
         chain_nodes=[]
         chain_colors={"PEP":"red"}
         edge_colors={"5":"black","4":"orange","8":"orange"}
-        
         list_colors=["cyan","green","magenta","blue"]
         type_interactions=[]
         
-        for i,amino in enumerate(hbonds_peptide):
+        # Iterate over the predicted hydrogen bonds
+        for i,amino in enumerate(self.hbonds_peptide):
             pos=int(amino[1:])
             names[pos-1]=amino
             chain_nodes.append("PEP")
             
-            if i!=len(hbonds_peptide)-1:
+            if i!=len(self.hbonds_peptide)-1:
                 pep_interactions.append((i,i+1))
                 type_interactions.append(5)
         
-        reference=len(hbonds_peptide)
+        # Iterate over the fragments to assign the properties and types of interactions
+        reference=len(self.hbonds_peptide)
         for num_chain,chains in enumerate(fragment_chains):
             chain_colors[chains]=list_colors[num_chain]
             for count,residues in enumerate(fragment_chains[chains]):
@@ -827,29 +763,22 @@ class peptide_structure:
                 names.append(residues[0]+"-"+residues[1]+str(residues[2]))
                 number_res=reference+count
                 
-                for pep_amino in hbonds_peptide:
-                    if residues in hbonds_peptide[pep_amino]:
+                for pep_amino in self.hbonds_peptide:
+                    if residues in self.hbonds_peptide[pep_amino]:
                         pep_interactions.append((names.index(pep_amino),number_res))
-                        type_interactions.append(hbonds_peptide[pep_amino].count(residues)*4)
+                        type_interactions.append(self.hbonds_peptide[pep_amino].count(residues)*4)
                         
             reference=len(names)
             
-        print len(names)
-        print len(pep_interactions)
-        print type_interactions
-        print len(chain_nodes)
-        print chain_colors
-        
-        
-        
+        # Create graph
         g = Graph(pep_interactions)
         g.vs["name"] = names
         g.vs["chains"] = chain_nodes
         g.es["count_int"] = type_interactions
         color_per_chain=[chain_colors[chColor] for chColor in g.vs["chains"]]
         color_per_edge=[edge_colors[str(edColor)] for edColor in type_interactions]
-        print color_per_chain
-        
+    
+        # Use a default layout 
         layout =g.layout_fruchterman_reingold()
         #layout = [(0,0),(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(0,7),(0,8),(0,9),(0,10)]
         visual_style = {}
@@ -861,48 +790,20 @@ class peptide_structure:
         visual_style["layout"] = layout
         visual_style["bbox"] = (800, 800)
         visual_style["margin"] = 80
-        
-        plot(g, **visual_style)
-        ###################################################
-            
+        plot(g,"auxiliar/plot_hbs_{}.png".format(self.sequence), **visual_style)
         
     ############################################################################
     
-    # Function to calculate the secondary structure with PROSS
-    def get_secondary_structure_PROSS(self):
-        """
-        """
-        bash="python auxiliar/PROSS.py %s > output" %self.pdb_file
-        os.system("%s" %bash)
-        
-        os.system("csplit -s output /Chain:/ {*}; tail -n +3 xx03 > pp2.txt; rm xx*")
-        structure=[x.strip() for x in open("pp2.txt")]
-        
-        # Store a string with the full prediction of PROSS
-        self.total_pross=""
-        
-        for s in structure:
-            info=s.split()
-            res=info[1]
-            resPos=info[0]
-            if info[2]=="P":
-                self.positions[int(resPos)]["pross"]="P"
-                self.total_pross=self.total_pross+"P"
-            else:
-                if info[3] in ("Dk","Dl","Ek","El"):
-                    self.positions[int(resPos)]["pross"]="P"
-                    self.total_pross=self.total_pross+"P"
-                else:
-                    self.positions[int(resPos)]["pross"]=info[2]
-                    self.total_pross=self.total_pross+info[2]
-        
-        os.system("rm output pp2.txt")
-    
-    ############################################################################
-    
-    # Function to count heavy atom contacts per residue
     def get_heavy_atom_contacts(self,contact_threshold):
         """
+        Function to count heavy atom contacts per residue
+        
+        Arguments:
+        contact_threshold -- theshold to define when a contact is created
+        
+        Return:
+        Add to the amino acids dictionary the number of contacts per amino acid
+        total_contacts -- total number of contacts calculated for the full peptide
         """
         
         # Get the other chains present in the PDB file
@@ -953,79 +854,98 @@ class peptide_structure:
                 self.positions[position]["contacts"]=countDict[residue+str(position)]
                 self.total_contacts+=countDict[residue+str(position)]
     
-    ############################################################################
-    
-    def calculate_dihedrals(self):
-        """
-        """
-        aaChi2=["R","N","D","Q","H","I","L","M","F","P","Y","E","K"]
-        
-        pose = pose_from_pdb(self.pdb_file)
-        
-        # Loop over the residues of the chain
-        position=1
-        for i in range(self.initial_id_residue,self.len_sequence+1):
-            residue=pose.pdb_info().pdb2pose(self.chain, i)
-            # Backbone dihedrals
-            self.positions[position]["phi"]=pose.phi(residue)
-            self.positions[position]["psi"]=pose.psi(residue)
-            # Print Chi1
-            self.positions[position]["chi1"]=pose.chi(1,residue)
-            # Print Chi2
-            if self.positions[position]["aa"] in aaChi2:
-                self.positions[position]["chi2"]=pose.chi(2,residue)
-            else:
-                self.positions[position]["chi2"]="-"
-            position+=1
-    
 
-
-    ################################################################
-    
-    def peptide_minimization(self):
-        """
-        """
-        pose = pose_from_pdb(self.pdb_file)
-         
-        scorefxn = get_fa_scorefxn()
-        mm = MoveMap()
-        mm.set_bb(True)
-        mm.set_chi(True) ## For side chain minimization
-        #mm.set_bb_true_range(1,4) ## Here range means 1 to 4 or the minimzation is applied only to residues 1 and4 ??
-        
-        minmover = MinMover(mm, scorefxn, 'dfpmin', 0.00001, True) ## I don't know the meaning of dfpmin,10,True. I saw it somewhere and used it
-        minmover.apply(pose)
-        
-        pose.dump_pdb("%s_minimized.pdb" %self.sequence)
-        os.system("csplit {peptide}_minimized.pdb /All/; mv xx00 {peptide}_minimized.pdb; rm xx01".format(peptide=self.sequence))
-
-
-############################################################################
-############################################################################
-############################################################################
-    
+########################################################################################
+########################################################################################
+########################################################################################
+# Main execution
+########################################################################################
+########################################################################################
+########################################################################################
 if __name__ == '__main__':
     
-    pep=peptide_sequence("KMGRLFR")
-    print "Sequence: ",pep.sequence
+    # Script arguments
+    parser = argparse.ArgumentParser(description='Pepfun: bioinformatics and cheminformatics protocols for peptide-related computational analysis')
+    parser.add_argument('-s', dest='pep_seq', action='store',required=True,
+                        help='Sequence of peptide to be analyzed')
+    parser.add_argument('-p', dest='pep_str', action='store', default="auxiliar/example_structure.pdb",
+                        help='Structure that will be used for the analysis')
+    # Pending add more
+    args = parser.parse_args()
+    
+    ####################################################################################
+    # Assignment of parameters
+    sequence=args.pep_seq
+    # sequence="KMGRLFR"
+    
+    ############################################################
+    # Test peptide sequence functions
+    ############################################################
+    print
+    print "### TEST PEPTIDE SEQUENCE FUNCTIONS ###"
+    pep=peptide_sequence(sequence)
+    print "The main peptide sequence is: ",pep.sequence
+    
     pep.compute_peptide_charges()
     print "Net charge at pH 7: ",pep.netCharge
+    
     pep.calculate_properties_from_mol()
     print "Molecular weight: ",pep.mol_weight
+    
     pep.calculate_properties_from_sequence()
     print "Average Hydrophobicity: ",pep.avg_hydro
     print "Isoelectric Point: ",pep.isoelectric_point
     
     matrix=matlist.structure
     pep.align_position_matrix("KAGRSFR",matrix)
-    print "Alignment pos_by_pos score: ",pep.score_pos_pos
-    pep.solubility_rules()
-    print "%d solubility rules failed from 5" %pep.solubility_rules_failed
-    pep.synthesis_rules()
-    print "%d synthesis rules failed from 5" %pep.synthesis_rules_failed
+    print "Alignment score by position with peptide KAGRSFR is: ",pep.score_matrix
     
     pep.align_position_local("KAGRSFR")
-    print "The number of dismatches are %d" %pep.dismatch
+    print "The number of dismatches with peptide KAGRSFR are: ",pep.dismatch
     
-    # list_peptides=generate_sequences(2,"natural")
-    # print len(list_peptides)
+    similarity=pep.similarity_pair("KMGRLFR","KAGRSFR",matrix)
+    print "The similarity between peptides KMGRLFR and KAGRSFR is: ",similarity
+    
+    pep.similar_smiles("KAGRSFR")
+    print "The SMILES similarity is: ",pep.smiles_similarity
+    
+    pep.solubility_rules()
+    print "{} solubility rules failed from 5".format(pep.solubility_rules_failed)
+    
+    pep.synthesis_rules()
+    print "{} synthesis rules failed from 5".format(pep.synthesis_rules_failed)
+    
+    ############################################################
+    # Test peptide structure functions
+    ############################################################
+    print
+    print "### TEST PEPTIDE STRUCTURE FUNCTIONS ###"
+    pdb_file="auxiliar/example_structure.pdb"
+    chain="C"
+    pepStr=peptide_structure(pdb_file,chain)
+    print "Peptide sequence bsaed on the PDB file is: ",pepStr.sequence
+    
+    pepStr.get_secondary_structure()
+    print "The predicted secondary structure is: ",pepStr.total_dssp
+    
+    pepStr.get_hydrogen_bonds()
+    pepStr.plot_hydrogen_bonds()
+    
+    contact_threshold=4.0
+    pepStr.get_heavy_atom_contacts(contact_threshold)
+    
+    print "The total number of contacts are: ",pepStr.total_contacts
+    print "The following are the details per amino acid in the peptide:"
+    print pepStr.positions
+    
+    ############################################################
+    # Test additional functions
+    ############################################################
+    print
+    print "### TEST ADDITIONAL FUNCTIONS ###"
+    list_peptides=generate_sequences(2,"natural")
+    print "The number of peptides generated in the library are: ",len(list_peptides)
+    library_report=open("auxiliar/library_generated.txt","w")
+    for pep in list_peptides: library_report.write("{}\n".format(pep))
+    library_report.close()
+     
