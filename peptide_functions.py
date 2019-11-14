@@ -20,7 +20,7 @@ RDKit: https://github.com/rdkit/rdkit/releases - Ubuntu package: python-biopytho
 
 __author__ = "Rodrigo Ochoa"
 __credits__ = ["Rodrigo Ochoa", "Lucy Jimenez","Roman Laskowski", "...", "Pilar Cossio"]
-__license__ = "GPL"
+__license__ = "MIT"
 __version__ = "1.0"
 __email__ = "rodrigo.ochoa@udea.edu.co"
 
