@@ -1,9 +1,32 @@
 #!/usr/bin/python
 
 """
-Package to run peptide analysis (PepFun)
-@author= Rodrigo Ochoa
+Pepfun: bioinformatics and cheminformatics protocols for peptide-related computational analysis
+
+From publication "Pepfun: bioinformatics and cheminformatics protocols for peptide-related computational analysis"
+Journal of Cheminformatics 
+Authors: Rodrigo Ochoa, Lucy Jimenez, Roman Laskowski, ..., Pilar Cossio
+Year: 2019
+
+Third-party tools required:
+
+BioPython: https://biopython.org/wiki/Download
+RDKit: https://github.com/rdkit/rdkit/releases
 """
+
+########################################################################################
+# Authorship
+########################################################################################
+
+__author__ = "Rodrigo Ochoa"
+__credits__ = ["Rodrigo Ochoa", "Lucy Jimenez","Roman Laskowski", "...", "Pilar Cossio"]
+__license__ = "GPL"
+__version__ = "1.0"
+__email__ = "rodrigo.ochoa@udea.edu.co"
+
+########################################################################################
+# Modules to import
+########################################################################################
 
 # External modules
 import math
@@ -38,42 +61,69 @@ from rdkit.Chem import Descriptors
 # init()
 
 # Local scripts
-import conformers
+# import conformers
 
 # PeptideMatch
 #import swagger_client 
 #from swagger_client.rest import ApiException
 #from pprint import pprint
 
+########################################################################################
+# General Functions
+########################################################################################
+
 def aminoacidSMILES(amino):
     """
-    """
-    aminoacids = {'G':{'SMILES': 'NCC(=O)O','c-term': False, 'n-term': False},
-                  'A':{'SMILES': 'N[C@@]([H])(C)C(=O)O','c-term': False,'n-term': False},
-                  'R':{'SMILES': 'N[C@@]([H])(CCCNC(=N)N)C(=O)O','c-term': False,'n-term': False},
-                  'N': {'SMILES': 'N[C@@]([H])(CC(=O)N)C(=O)O','c-term': False,'n-term': False},
-                  'D': {'SMILES': 'N[C@@]([H])(CC(=O)O)C(=O)O','c-term': 'N[C@@]([H])(CC*(=O))C(=O)O','n-term': False},
-                  'C': {'SMILES': 'N[C@@]([H])(CS)C(=O)O','c-term': False,'n-term': False},
-                  'E': {'SMILES': 'N[C@@]([H])(CCC(=O)O)C(=O)O','c-term': 'N[C@@]([H])(CCC*(=O))C(=O)O','n-term': False},
-                  'Q': {'SMILES': 'N[C@@]([H])(CCC(=O)N)C(=O)O','c-term': False,'n-term': False},
-                  'H': {'SMILES': 'N[C@@]([H])(CC1=CN=C-N1)C(=O)O','c-term': False,'n-term': False},
-                  'I': {'SMILES': 'N[C@@]([H])(C(CC)C)C(=O)O','c-term': False,'n-term': False},
-                  'L': {'SMILES': 'N[C@@]([H])(CC(C)C)C(=O)O','c-term': False,'n-term': False},
-                  'K': {'SMILES': 'N[C@@]([H])(CCCCN)C(=O)O','c-term': False,'nterm': 'N[C@@]([H])(CCCCN*)C(=O)O'},
-                  'M': {'SMILES': 'N[C@@]([H])(CCSC)C(=O)O','c-term': False,'n-term': False},
-                  'F': {'SMILES': 'N[C@@]([H])(Cc1ccccc1)C(=O)O','c-term': False,'n-term': False},
-                  'P': {'SMILES': 'N1[C@@]([H])(CCC1)C(=O)O','c-term': False,'n-term': False},
-                  'S': {'SMILES': 'N[C@@]([H])(CO)C(=O)O','c-term': False,'n-term': False},
-                  'T': {'SMILES': 'N[C@@]([H])(C(O)C)C(=O)O','c-term': False,'n-term': False},
-                  'W': {'SMILES': 'N[C@@]([H])(CC(=CN2)C1=C2C=CC=C1)C(=O)O','c-term': False,'n-term': False},
-                  'Y': {'SMILES': 'N[C@@]([H])(Cc1ccc(O)cc1)C(=O)O','c-term': False,'n-term': False},
-                  'V': {'SMILES': 'N[C@@]([H])(C(C)C)C(=O)O','c-term': False,'n-term': False}}
-    return aminoacids[amino]['SMILES']
+    Obtain the SMILES representation of a particular amino acid
     
+    Arguments:
+    amino -- One-letter code of the amino acid
+    
+    Return:
+    smiles -- 1D Chemical representation of the amino acid 
+    """
+    
+    # Dictionary with the SMILES per amino acid
+    aminoacids = {'G':{'SMILES': 'NCC(=O)O'},
+                  'A':{'SMILES': 'N[C@@]([H])(C)C(=O)O'},
+                  'R':{'SMILES': 'N[C@@]([H])(CCCNC(=N)N)C(=O)O'},
+                  'N': {'SMILES': 'N[C@@]([H])(CC(=O)N)C(=O)O'},
+                  'D': {'SMILES': 'N[C@@]([H])(CC(=O)O)C(=O)O'},
+                  'C': {'SMILES': 'N[C@@]([H])(CS)C(=O)O'},
+                  'E': {'SMILES': 'N[C@@]([H])(CCC(=O)O)C(=O)O'},
+                  'Q': {'SMILES': 'N[C@@]([H])(CCC(=O)N)C(=O)O'},
+                  'H': {'SMILES': 'N[C@@]([H])(CC1=CN=C-N1)C(=O)O'},
+                  'I': {'SMILES': 'N[C@@]([H])(C(CC)C)C(=O)O'},
+                  'L': {'SMILES': 'N[C@@]([H])(CC(C)C)C(=O)O'},
+                  'K': {'SMILES': 'N[C@@]([H])(CCCCN)C(=O)O'},
+                  'M': {'SMILES': 'N[C@@]([H])(CCSC)C(=O)O'},
+                  'F': {'SMILES': 'N[C@@]([H])(Cc1ccccc1)C(=O)O'},
+                  'P': {'SMILES': 'N1[C@@]([H])(CCC1)C(=O)O'},
+                  'S': {'SMILES': 'N[C@@]([H])(CO)C(=O)O'},
+                  'T': {'SMILES': 'N[C@@]([H])(C(O)C)C(=O)O'},
+                  'W': {'SMILES': 'N[C@@]([H])(CC(=CN2)C1=C2C=CC=C1)C(=O)O'},
+                  'Y': {'SMILES': 'N[C@@]([H])(Cc1ccc(O)cc1)C(=O)O'},
+                  'V': {'SMILES': 'N[C@@]([H])(C(C)C)C(=O)O'}}
+    
+    # Store the SMILES in a variable
+    smiles=aminoacids[amino]['SMILES']
+    return smiles
+
+########################################################################################
+
 def generate_sequences(long_peptide,aa_type="natural"):
     """
+    Method to generate a combinatorial library of peptide sequences using natural and d-amino acids
+    
+    Arguments:
+    long_peptide -- Lenght of the peptides that are going to be generated
+    aa_type -- Nature of the amino acids that can be included. Options: natural (default), d_aminoacids, combined
+    
+    Return:
+    frags -- List with the sequences generated
     """
     
+    # List of the amino acids that can be included
     natural=["A","C","D","E","F","G","H","I","K","L","M","N","P","Q","R","S","T","V","W","Y"]
     d_aminoacids=["[dA]","[dC]","[dD]","[dE]","[dF]","[dH]","[dI]","[dK]","[dL]","[dM]","[dN]","[dP]","[dQ]","[dR]","[dT]","[dV]","[dW]"]
     combined=["A","C","D","E","F","G","H","I","K","L","M","N","P","Q","R","S","T","V","W","Y",
@@ -82,151 +132,145 @@ def generate_sequences(long_peptide,aa_type="natural"):
     # List where the sequnces will be stored
     frags=[]
     if aa_type=="natural":
+        # Generate the combinatorial library
         for i in itertools.product(natural, repeat=long_peptide):
             f='.'.join(map(str, i))
             frags.append('.'.join(map(str, i)))
-    
-    if aa_type=="d_aminoacids":
+    elif aa_type=="d_aminoacids":
+        # Generate the combinatorial library
         for i in itertools.product(d_aminoacids, repeat=long_peptide):
             f='.'.join(map(str, i))
             frags.append('.'.join(map(str, i)))
-            
-    if aa_type=="combined":
+    elif aa_type=="combined":
+        # Generate the combinatorial library
         for i in itertools.product(combined, repeat=long_peptide):
             f='.'.join(map(str, i))
             if "[" in f: frags.append('.'.join(map(str, i)))
-            
-    # Return the list
+    else:
+        print "The type of amino acid is invalid"
+        
+    # Return the list of peptide sequences
     return frags
+
+########################################################################################
 
 def generate_peptide_pattern(pattern):
     """
+    Method to generate a peptide sequences following a pattern using only natural amino acids
+    
+    Arguments:
+    pattern -- Pattern based on XX to generate the list of sequences
+    
+    Return:
+    list_peptides -- List with the sequences generated
     """
+    
+    # List of natural amino acids that can be included
     natural=["A","C","D","E","F","G","H","I","K","L","M","N","P","Q","R","S","T","V","W","Y"]
     
     list_peptides=[]
+    
+    # Combination of possible sequences following the given pattern
     for pep in itertools.product(natural, repeat=pattern.count('X')):
         pep = list(pep)
         mut_pep = []
         for res in pattern:
+            # check if any amino acid can be included in the sequence
             if  res != 'X': mut_pep.append(res)
             else: mut_pep.append(pep.pop(0))
         list_peptides.append("".join(mut_pep))
     
+    # Return the list of peptide sequences
     return list_peptides
+
+########################################################################################
 
 def combinatorial_library(long_peptide,aa_type="natural"):
     """
+    Method to generate a combinatorial library of peptide sequences but limiting the frequency of amino acids in certain positions
+    
+    Arguments:
+    long_peptide -- Lenght of the peptides that are going to be generated
+    aa_type -- Nature of the amino acids that can be included. Options: natural (default), d_aminoacids, combined
+    
+    Return:
+    peptides -- List with the sequences generated
     """
     
+    # List of the amino acids that can be included
     natural=["A","C","D","E","F","G","H","I","K","L","M","N","P","Q","R","S","T","V","W","Y"]
     d_aminoacids=["[dA]","[dC]","[dD]","[dE]","[dF]","[dH]","[dI]","[dK]","[dL]","[dM]","[dN]","[dP]","[dQ]","[dR]","[dT]","[dV]","[dW]"]
     combined=["A","C","D","E","F","G","H","I","K","L","M","N","P","Q","R","S","T","V","W","Y",
               "[dA]","[dC]","[dD]","[dE]","[dF]","[dH]","[dI]","[dK]","[dL]","[dM]","[dN]","[dP]","[dQ]","[dR]","[dT]","[dV]","[dW]"]
     
-    # List where the sequnces will be stored
+    # List where the sequences will be stored
     peptides=[]
     if aa_type=="natural":
+        # Counter of the peptide length
         for i in range(0,long_peptide):
             for aa in natural:
+                # Run the process 3 times per amino acids
                 for j in range(0,3):
                     sequence=[None]*long_peptide
                     for k in range(0,long_peptide):
                         if k==i:
                             sequence[k]=aa
                         else:
+                            # Loop to check that the sequence does not have more than 3 equal amino acids
                             accept_change=0
                             while accept_change==0:
                                 posRand=randint(0,len(natural)-1)
                                 new_aa=natural[posRand]
                                 if sequence.count(new_aa)<=3:
                                     accept_change=1
-                            
+                            # Add the amino acid after checking the restraint
                             sequence[k]=new_aa
                     
+                    # Join the amino acids and append the new sequence
                     seq_string=''.join(sequence)
                     peptides.append(seq_string)
         
     # Return the list
     return peptides
 
+########################################################################################
+
 def frequencies_library(peptides):
     """
+    Calculate the frequency of each amino acid in a particular peptide library
+    
+    Arguments:
+    peptides -- List of peptides in the library
+    
+    Return:
+    count_dict -- Dictionary with the numbers per each natural amino acid
     """
+    
     # Create counter dictionary
     count_dict={}
     for i in range(1,len(peptides[0])+1):
         count_dict[i]={"A":0,"R":0,"N":0,"D":0,"C":0,"Q":0,"E":0,"G":0,"H":0,"I":0,"L":0,"K":0,"M":0,"F":0,"P":0,"S":0,"T":0,"W":0,"Y":0,"V":0}
-        
+    
+    # Read the sequences and count each amino acid    
     for sequence in peptides:
         for pos,aa in enumerate(sequence):
             count_dict[pos+1][aa]+=1
     
+    # Print the dictionary
     for key in count_dict:
         print key,count_dict[key]
     
+    # Return the dictionary
     return count_dict
 
-# Third services
+########################################################################################
+# Classes and Functions
+########################################################################################
 
-def peptide_match(peptide):
-    """
-    """
-    total_results=[]
-    
-    # Search into the Swissprot
-    os.system("java -jar auxiliar/PeptideMatchCMD_1.0.jar -a query -i sequence_databases/sprot_index -q %s -o out.txt" %peptide)
-    hits=[x.strip() for x in open("out.txt")]
-    for i,results in enumerate(hits):
-        if i>=2:
-            info=results.split()
-            if info[1]!="No":
-                total_results.append([info[1].split("|")[1],info[1].split("|")[2],info[2],info[3],info[4]])
-    os.system("rm out.txt")
-    
-    # Search into the Trembl
-    trembl_list=[x.strip() for x in open("sequence_databases/list_sequences.txt")]
-    for trembl in trembl_list:
-        os.system("java -jar auxiliar/PeptideMatchCMD_1.0.jar -a query -i sequence_databases/%s -q %s -o out.txt" %(trembl,peptide))
-        hits=[x.strip() for x in open("out.txt")]
-        for i,results in enumerate(hits):
-            if i>=2:
-                info=results.split()
-                if info[1]!="No":
-                    total_results.append([info[1].split("|")[1],info[1].split("|")[2],info[2],info[3],info[4]])
-        os.system("rm out.txt")
-    
-    report_hits=open("matches_%s.txt" %peptide,"wb")
-    for result in total_results:
-        print "\t".join(result)
-        report_hits.write("%s\n" %"\t".join(result))
-    report_hits.close
-        
-
-def query_peptide_match(peptide):
-    """
-    TODO: Fix the input an output
-    """
-    # create an instance of the API class
-    api_instance = swagger_client.PeptideMatchAPI20Api()
-    peptides = peptide # str | A list of comma-separated peptide sequences (up to 100). Each sequence consists of 3 or more amino acids. (default to AAVEEGIVLGGGCALLR,SVQYDDVPEYK)
-    taxonids = '9606,10090' # str | A list fo comma-separated NCBI taxonomy IDs. (optional) (default to 9606,10090)
-    swissprot = 'true' # bool | Only search SwissProt protein sequences. (optional) (default to true)
-    isoform = 'true' # bool | Include isforms. (optional) (default to true)
-    uniref100 = 'false' # bool | Only search UniRef100 protein sequences. (optional) (default to false)
-    leqi = 'false' # bool | Treat Leucine (L) and Isoleucine (I) equivalent. (optional) (default to false)
-    offset = 0 # int | Off set, page starting point, with default value 0. (optional) (default to 0)
-    size = 100 # int | Page size with default value 100. When page size is -1, it returns all records and offset will be ignored. (optional) (default to 100)
-    
-    try:
-        # Do peptide match using GET method.
-        api_response = api_instance.match_get_get(peptides, taxonids=taxonids, swissprot=swissprot, isoform=isoform, uniref100=uniref100, leqi=leqi, offset=offset, size=size)
-        pprint(api_response)
-    except ApiException as e:
-        print "Exception when calling PeptideMatchAPI20Api->match_get_get: %s\n" %e
-
-# Class and functions
 class peptide_sequence:
+    """
+    Class with functions to perform different type of analysis using a peptide sequence as an object
+    """
     
     # PENDIENTE
     # Calcular protein scales y dar la opcion de compararlas segun la ventana
