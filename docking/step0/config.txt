@@ -4,4 +4,4 @@ center_z=-2.416
 size_x=17.765
 size_y=17.765
 size_z=17.765
-exhaustiveness=4
+exhaustiveness=12
