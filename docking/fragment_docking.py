@@ -113,7 +113,7 @@ def modelling_fragments(pepT,pepM,step,receptor,number_chains):
     """
     
     # Copy the PDB files that are going to be used in the modelling
-    os.system('cp step%d/model1_step%d.pdb .' %(step,step))
+    os.system('cp output/step%d/model1_step%d.pdb .' %(step,step))
     if number_chains==1: os.system("sed -i 's/ A  / B  /g' model1_step%d.pdb" %step)
     if number_chains==2: os.system("sed -i 's/ A  / C  /g' model1_step%d.pdb" %step)
     os.system("cat %s.pdb model1_step%d.pdb > complex1_step%d.pdb" %(receptor,step,step))
@@ -243,7 +243,7 @@ def protonation(molecule,pH):
     File after doing the protonation (.pqr format)
     """
     
-    os.system("./auxiliar/pdb2pqr-linux/pdb2pqr --with-ph={} --ph-calc-method=propka --drop-water --apbs-input --ff=amber --verbose --chain --summary {mol}.pdb {mol}.pqr".format(pH,mol=molecule))
+    os.system("./scripts/pdb2pqr-linux/pdb2pqr --with-ph={} --ph-calc-method=propka --drop-water --apbs-input --ff=amber --verbose --chain --summary {mol}.pdb {mol}.pqr".format(pH,mol=molecule))
     os.system("rm {mol}.in {mol}-input.p {mol}.summary {mol}.propka".format(mol=molecule))
 
 ################################################################
@@ -385,7 +385,7 @@ def docking(receptor,peptide,sequence,stepNumber):
         os.system("vina --receptor {}.pdbqt --ligand {}.pdbqt --log score.log --out out.pdbqt --config config.txt".format(receptor,peptide))
         
         # Split and get the first model
-        os.system("csplit out.pdbqt /MODEL/ {*}; mv xx01 model1_step{}.pdbqt".format(stepNumber))
+        os.system("csplit out.pdbqt /MODEL/ {{*}}; mv xx01 model1_step{}.pdbqt".format(stepNumber))
         os.system("rm xx* score.log out.pdbqt")
         
         # Count the number of models
@@ -404,9 +404,9 @@ def docking(receptor,peptide,sequence,stepNumber):
         rigidAtoms=[]
         for rigid in rigidAA:
             if rigid <=9:
-                os.system("grep {} {}.pqr | grep 'A   {}' | awk '{print $2}' > atom.temp".format(aminoacids[sequence[rigid-1]],peptide,rigid))
+                os.system("grep {} {}.pqr | grep 'A   {}' | awk '{{print $2}}' > atom.temp".format(aminoacids[sequence[rigid-1]],peptide,rigid))
             else:
-                os.system("grep {} {}.pqr | grep 'A  {}' | awk '{print $2}' > atom.temp".format(aminoacids[sequence[rigid-1]],peptide,rigid))
+                os.system("grep {} {}.pqr | grep 'A  {}' | awk '{{print $2}}' > atom.temp".format(aminoacids[sequence[rigid-1]],peptide,rigid))
             num=[x.strip() for x in open("atom.temp")]
             rigidAtoms=rigidAtoms+num
             os.system("rm atom.temp")
@@ -414,7 +414,7 @@ def docking(receptor,peptide,sequence,stepNumber):
         # Get the atoms that will be inactivated
         inactive=[]
         os.system("./scripts/pythonsh scripts/prepare_ligand4.py -s -l {pep}.pqr -C -U '' -B -o {pep}.pdbqt".format(pep=peptide))
-        os.system("grep REMARK {}.pdbqt | grep '  A  ' | awk '{print $6\"\t\"$8}' | sed 's/_/ /g' | awk '{print $2\"_\"$4}' > active.temp".format(peptide))
+        os.system("grep REMARK {}.pdbqt | grep '  A  ' | awk '{{print $6\"\t\"$8}}' | sed 's/_/ /g' | awk '{{print $2\"_\"$4}}' > active.temp".format(peptide))
         bonds=[x.strip() for x in open("active.temp")]
         for b in bonds:
             data=b.split("_")
@@ -432,7 +432,7 @@ def docking(receptor,peptide,sequence,stepNumber):
         os.system("vina --receptor {}.pdbqt --ligand {}.pdbqt --log score.log --out out.pdbqt --config config.txt".format(receptor,peptide))
         
         # Get the first model
-        os.system("csplit out.pdbqt /MODEL/ {*}; mv xx01 model1_step{}.pdbqt".format(stepNumber))
+        os.system("csplit out.pdbqt /MODEL/ {{*}}; mv xx01 model1_step{}.pdbqt".format(stepNumber))
         os.system("rm xx* score.log out.pdbqt")
         
         # Count number models
@@ -608,7 +608,7 @@ if __name__ == '__main__':
         
         # Model the fragment
         modelling_fragments(pepTemplate,frag,i,receptor,number_chains)
-        protonation("pepM_step{}".format(i+1))
+        protonation("pepM_step{}".format(i+1),pH)
         
         # Generate the box
         generate_box(frag,center_x,center_y,center_z,"pepM_step{}.pdb".format(i+1),initial_size)
