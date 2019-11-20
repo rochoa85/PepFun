@@ -1,7 +1,7 @@
 center_x=-5.256
 center_y=26.343
 center_z=-2.416
-size_x=17.7649843693
+size_x=42.610001564
 size_y=17.7649843693
-size_z=19.6050000191
+size_z=17.7649843693
 exhaustiveness=12
