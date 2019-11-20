@@ -159,7 +159,7 @@ def modelling_fragments(pepT,pepM,step,receptor,number_chains):
     
     # Directories for input atom files
     e.io.atom_files_directory = ['.', '../atom_files']
-    a = automodel(e, alnfile='alignment.ali', knowns='complex1_step{}'.format(step), sequence='complex1_step{}_fill'-format(step))
+    a = automodel(e, alnfile='alignment.ali', knowns='complex1_step{}'.format(step), sequence='complex1_step{}_fill'.format(step))
     a.starting_model= 1
     a.ending_model  = 1
     a.make()
