@@ -472,40 +472,40 @@ def new_coordinates(base,model_pdbqt):
             # Check the spaces of the PDB file based on the residue number
             if resNumber<=9:
                 if idAtom in batoms:
-                    bash="grep %s %s.pdbqt | grep 'A   %s' | grep '  %s  ' | awk '{print $7}'" %(resName,model_pdbqt,str(resNumber),idAtom)
+                    bash="grep {} {}.pdbqt | grep 'A   {}' | grep '  {}  ' | awk '{{print $7}}'".format(resName,model_pdbqt,str(resNumber),idAtom)
                     new_x = subprocess.check_output(['bash','-c', bash])
-                    bash="grep %s %s.pdbqt | grep 'A   %s' | grep '  %s  ' | awk '{print $8}'" %(resName,model_pdbqt,str(resNumber),idAtom)
+                    bash="grep {} {}.pdbqt | grep 'A   {}' | grep '  {}  ' | awk '{{print $8}}'".format(resName,model_pdbqt,str(resNumber),idAtom)
                     new_y = subprocess.check_output(['bash','-c', bash])
-                    bash="grep %s %s.pdbqt | grep 'A   %s' | grep '  %s  ' | awk '{print $9}'" %(resName,model_pdbqt,str(resNumber),idAtom)
+                    bash="grep {} {}.pdbqt | grep 'A   {}' | grep '  {}  ' | awk '{{print $9}}'".format(resName,model_pdbqt,str(resNumber),idAtom)
                     new_z = subprocess.check_output(['bash','-c', bash])
                     atom.set_coord([float(new_x),float(new_y),float(new_z)])
                 else:
                     if len(idAtom)==4: idAtom=idAtom[-1]+idAtom[:3]
                         
-                    bash="grep %s %s.pdbqt | grep 'A   %s' | grep ' %s ' | awk '{print $7}'" %(resName,model_pdbqt,str(resNumber),idAtom)
+                    bash="grep {} {}.pdbqt | grep 'A   {}' | grep ' {} ' | awk '{{print $7}}'".format(resName,model_pdbqt,str(resNumber),idAtom)
                     new_x = subprocess.check_output(['bash','-c', bash])
-                    bash="grep %s %s.pdbqt | grep 'A   %s' | grep ' %s ' | awk '{print $8}'" %(resName,model_pdbqt,str(resNumber),idAtom)
+                    bash="grep {} {}.pdbqt | grep 'A   {}' | grep ' {} ' | awk '{{print $8}}'".format(resName,model_pdbqt,str(resNumber),idAtom)
                     new_y = subprocess.check_output(['bash','-c', bash])
-                    bash="grep %s %s.pdbqt | grep 'A   %s' | grep ' %s ' | awk '{print $9}'" %(resName,model_pdbqt,str(resNumber),idAtom)
+                    bash="grep {} {}.pdbqt | grep 'A   {}' | grep ' {} ' | awk '{{print $9}}'".format(resName,model_pdbqt,str(resNumber),idAtom)
                     new_z = subprocess.check_output(['bash','-c', bash])
                     atom.set_coord([float(new_x),float(new_y),float(new_z)])
             else:
                 if idAtom in batoms:
-                    bash="grep %s %s.pdbqt | grep 'A  %s' | grep '  %s  ' | awk '{print $7}'" %(resName,model_pdbqt,str(resNumber),idAtom)
+                    bash="grep {} {}.pdbqt | grep 'A  {}' | grep '  {}  ' | awk '{{print $7}}'".format(resName,model_pdbqt,str(resNumber),idAtom)
                     new_x = subprocess.check_output(['bash','-c', bash])
-                    bash="grep %s %s.pdbqt | grep 'A  %s' | grep '  %s  ' | awk '{print $8}'" %(resName,model_pdbqt,str(resNumber),idAtom)
+                    bash="grep {} {}.pdbqt | grep 'A  {}' | grep '  {}  ' | awk '{{print $8}}'".format(resName,model_pdbqt,str(resNumber),idAtom)
                     new_y = subprocess.check_output(['bash','-c', bash])
-                    bash="grep %s %s.pdbqt | grep 'A  %s' | grep '  %s  ' | awk '{print $9}'" %(resName,model_pdbqt,str(resNumber),idAtom)
+                    bash="grep {} {}.pdbqt | grep 'A  {}' | grep '  {}  ' | awk '{{print $9}}'".format(resName,model_pdbqt,str(resNumber),idAtom)
                     new_z = subprocess.check_output(['bash','-c', bash])
                     atom.set_coord([float(new_x),float(new_y),float(new_z)])
                 else:
                     if len(idAtom)==4: idAtom=idAtom[-1]+idAtom[:3]
                         
-                    bash="grep %s %s.pdbqt | grep 'A  %s' | grep ' %s ' | awk '{print $7}'" %(resName,model_pdbqt,str(resNumber),idAtom)
+                    bash="grep {} {}.pdbqt | grep 'A  {}' | grep ' {} ' | awk '{{print $7}}'".format(resName,model_pdbqt,str(resNumber),idAtom)
                     new_x = subprocess.check_output(['bash','-c', bash])
-                    bash="grep %s %s.pdbqt | grep 'A  %s' | grep ' %s ' | awk '{print $8}'" %(resName,model_pdbqt,str(resNumber),idAtom)
+                    bash="grep {} {}.pdbqt | grep 'A  {}' | grep ' {} ' | awk '{{print $8}}'".format(resName,model_pdbqt,str(resNumber),idAtom)
                     new_y = subprocess.check_output(['bash','-c', bash])
-                    bash="grep %s %s.pdbqt | grep 'A  %s' | grep ' %s ' | awk '{print $9}'" %(resName,model_pdbqt,str(resNumber),idAtom)
+                    bash="grep {} {}.pdbqt | grep 'A  {}' | grep ' {} ' | awk '{{print $9}}'".format(resName,model_pdbqt,str(resNumber),idAtom)
                     new_z = subprocess.check_output(['bash','-c', bash])
                     atom.set_coord([float(new_x),float(new_y),float(new_z)])
             
