@@ -5,8 +5,8 @@ Pepfun: bioinformatics and cheminformatics protocols for peptide-related computa
 
 From publication "Pepfun: bioinformatics and cheminformatics protocols for peptide-related computational analysis"
 Journal of Cheminformatics 
-Authors: Rodrigo Ochoa, Lucy Jimenez, Roman Laskowski, ..., Pilar Cossio
-Year: 2019
+Authors: Rodrigo Ochoa, Roman Laskowski, ..., Pilar Cossio
+Year: 2020
 
 Third-party tools required:
 
@@ -19,7 +19,7 @@ RDKit: https://github.com/rdkit/rdkit/releases - Ubuntu package: python-biopytho
 ########################################################################################
 
 __author__ = "Rodrigo Ochoa"
-__credits__ = ["Rodrigo Ochoa", "Lucy Jimenez","Roman Laskowski", "...", "Pilar Cossio"]
+__credits__ = ["Rodrigo Ochoa", "Roman Laskowski", "...", "Pilar Cossio"]
 __license__ = "MIT"
 __version__ = "1.0"
 __email__ = "rodrigo.ochoa@udea.edu.co"
@@ -713,7 +713,7 @@ class peptide_structure:
     
     ############################################################################
     
-    def plot_hydrogen_bonds(self):       
+    def plot_hydrogen_bonds(self,type_layout):       
         """
         Function to plot the hydrogen bonds using the igraph module of Python.
         NOTE: Installation instructions: https://igraph.org/python/
@@ -739,7 +739,7 @@ class peptide_structure:
         names=[0]*len(self.hbonds_peptide)
         pep_interactions=[]
         chain_nodes=[]
-        chain_colors={"PEP":"red"}
+        chain_colors={"PEP":"yellow"}
         edge_colors={"5":"black","4":"orange","8":"orange"}
         list_colors=["cyan","green","magenta","blue"]
         type_interactions=[]
@@ -756,6 +756,7 @@ class peptide_structure:
         
         # Iterate over the fragments to assign the properties and types of interactions
         reference=len(self.hbonds_peptide)
+        chain_numbers={}
         for num_chain,chains in enumerate(fragment_chains):
             chain_colors[chains]=list_colors[num_chain]
             for count,residues in enumerate(fragment_chains[chains]):
@@ -778,17 +779,42 @@ class peptide_structure:
         color_per_chain=[chain_colors[chColor] for chColor in g.vs["chains"]]
         color_per_edge=[edge_colors[str(edColor)] for edColor in type_interactions]
     
-        # Use a default layout 
-        layout =g.layout_fruchterman_reingold()
-        #layout = [(0,0),(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(0,7),(0,8),(0,9),(0,10)]
+        # Use a default layout
+        if type_layout=="linear":
+            layout=[]
+            ref_chain=chain_nodes[0]
+            positions=[0,-1,1]
+            c_pos=0
+            c_nod=0
+            for c,ele in enumerate(chain_nodes):
+                if ele==ref_chain:
+                    layout.append((c_nod,positions[c_pos]))
+                    c_nod+=1
+                else:
+                    ref_chain=ele
+                    c_pos+=1
+                    
+                    number_ch_ele=chain_nodes.count(ele)
+                    c_nod=(len(self.hbonds_peptide)/2)-(number_ch_ele/2)
+                    #for inter in pep_interactions:
+                    #    if inter[1]==c:
+                    #        c_nod=inter[0]
+                    #        break
+                    layout.append((c_nod,positions[c_pos]))
+                    c_nod+=1
+            bbox=(1200,400)
+        if type_layout=="cyclic":
+            layout =g.layout_fruchterman_reingold()
+            bbox=(800,800)
+        
         visual_style = {}
-        visual_style["vertex_size"] = 50
+        visual_style["vertex_size"] = 60
         visual_style["vertex_color"] = color_per_chain
         visual_style["edge_color"] = color_per_edge
         visual_style["vertex_label"] = g.vs["name"]
         visual_style["edge_width"] = type_interactions
         visual_style["layout"] = layout
-        visual_style["bbox"] = (800, 800)
+        visual_style["bbox"] = bbox
         visual_style["margin"] = 80
         plot(g,"auxiliar/plot_hbs_{}.png".format(self.sequence), **visual_style)
         
@@ -866,7 +892,7 @@ if __name__ == '__main__':
     
     # Script arguments
     parser = argparse.ArgumentParser(description='Pepfun: bioinformatics and cheminformatics protocols for peptide-related computational analysis')
-    parser.add_argument('-s', dest='pep_seq', action='store',required=True,
+    parser.add_argument('-s', dest='pep_seq', action='store',#required=True,
                         help='Sequence of peptide to be analyzed')
     parser.add_argument('-p', dest='pep_str', action='store', default="auxiliar/example_structure.pdb",
                         help='Structure that will be used for the analysis')
@@ -920,8 +946,9 @@ if __name__ == '__main__':
     ############################################################
     print
     print "### TEST PEPTIDE STRUCTURE FUNCTIONS ###"
-    pdb_file="auxiliar/example_structure.pdb"
-    chain="C"
+    #pdb_file="auxiliar/example_structure.pdb"
+    pdb_file=args.pep_str
+    chain="B"
     pepStr=peptide_structure(pdb_file,chain)
     print "Peptide sequence bsaed on the PDB file is: ",pepStr.sequence
     
@@ -929,7 +956,7 @@ if __name__ == '__main__':
     print "The predicted secondary structure is: ",pepStr.total_dssp
     
     pepStr.get_hydrogen_bonds()
-    pepStr.plot_hydrogen_bonds()
+    pepStr.plot_hydrogen_bonds("linear")
     
     contact_threshold=4.0
     pepStr.get_heavy_atom_contacts(contact_threshold)
@@ -943,7 +970,9 @@ if __name__ == '__main__':
     ############################################################
     print
     print "### TEST ADDITIONAL FUNCTIONS ###"
-    list_peptides=generate_sequences(2,"natural")
+    #list_peptides=generate_sequences(2,"natural")
+    #list_peptides=combinatorial_library(10,"natural")
+    list_peptides=generate_peptide_pattern("XERTX")
     print "The number of peptides generated in the library are: ",len(list_peptides)
     library_report=open("auxiliar/library_generated.txt","w")
     for pep in list_peptides: library_report.write("{}\n".format(pep))

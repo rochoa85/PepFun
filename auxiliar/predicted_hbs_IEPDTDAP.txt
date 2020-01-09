@@ -1,0 +1,16 @@
+P3 interacts with residue S198 from chain A
+I1 interacts with residue G200 from chain A
+I1 interacts with residue S198 from chain A
+T5 interacts with residue G181 from chain A
+T5 interacts with residue F179 from chain A
+T5 interacts with residue R28 from chain A
+A7 interacts with residue F179 from chain A
+D6 interacts with residue K27 from chain A
+D6 interacts with residue K180 from chain A
+D4 interacts with residue V197 from chain A
+D4 interacts with residue D182 from chain A
+D4 interacts with residue F179 from chain A
+D4 interacts with residue K180 from chain A
+E2 interacts with residue Y199 from chain A
+E2 interacts with residue Y199 from chain A
+E2 interacts with residue N84 from chain A

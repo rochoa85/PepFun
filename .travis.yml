@@ -1,0 +1,3 @@
+language: generic
+group: travis_latest
+sudo: false
