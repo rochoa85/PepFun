@@ -19,7 +19,7 @@ RDKit: https://github.com/rdkit/rdkit/releases - Ubuntu package: python-biopytho
 ########################################################################################
 
 __author__ = "Rodrigo Ochoa"
-__credits__ = ["Rodrigo Ochoa", "Roman Laskowski", "...", "Pilar Cossio"]
+__credits__ = ["Rodrigo Ochoa", "Roman Laskowski", "Pilar Cossio"]
 __license__ = "MIT"
 __version__ = "1.0"
 __email__ = "rodrigo.ochoa@udea.edu.co"
@@ -53,10 +53,6 @@ from rdkit import DataStructs
 from rdkit.Chem import Crippen
 from rdkit.Chem import Lipinski
 from rdkit.Chem import Descriptors
-
-# Local scripts
-# import conformers
-
 
 ########################################################################################
 # General Functions

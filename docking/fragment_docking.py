@@ -7,14 +7,18 @@ NOTE: The protocol requires of auxiliary programas and Unix system commands - Te
 
 From publication "Pepfun: bioinformatics and cheminformatics protocols for peptide-related computational analysis"
 Journal of Cheminformatics 
-Authors: Rodrigo Ochoa, Lucy Jimenez, Roman Laskowski, ..., Pilar Cossio
-Year: 2019
+Authors: Rodrigo Ochoa, Roman A. Laskowski, Pilar Cossio
+Year: 2020
 
 Third-party tools required:
 
 BioPython: https://biopython.org/wiki/Download - Ubuntu package: python-rdkit
 RDKit: https://github.com/rdkit/rdkit/releases - Ubuntu package: python-biopython
+AutoDock Vina: http://vina.scripps.edu/download.html - Ubuntu package: autodock-vina
+
 Modeller: https://salilab.org/modeller/download_installation.html
+MGL Tools: http://mgltools.scripps.edu/downloads
+PDB2PQR: https://apbs-pdb2pqr.readthedocs.io/en/latest/downloads.html
 """
 
 ########################################################################################
@@ -22,7 +26,7 @@ Modeller: https://salilab.org/modeller/download_installation.html
 ########################################################################################
 
 __author__ = "Rodrigo Ochoa"
-__credits__ = ["Rodrigo Ochoa", "Lucy Jimenez","Roman Laskowski", "...", "Pilar Cossio"]
+__credits__ = ["Rodrigo Ochoa","Roman A. Laskowski", "Pilar Cossio"]
 __license__ = "MIT"
 __version__ = "1.0"
 __email__ = "rodrigo.ochoa@udea.edu.co"
@@ -328,18 +332,18 @@ def generate_box(sequence,center_x,center_y,center_z,pdb,initial_size):
     diff_z=model["A"][1]["CA"].coord[2]-model["A"][number_amino]["CA"].coord[2]
     
     # Assign the sizes based on the growing direction of the peptide
-    if abs(diff_x*2.5)>initial_size:
-        size_x=abs(diff_x*2.5)
+    if abs(diff_x*2.0)>initial_size:
+        size_x=abs(diff_x*2.0)
     else:
         size_x=initial_size
         
-    if abs(diff_y*2.5)>initial_size:
-        size_y=abs(diff_y*2.5)
+    if abs(diff_y*2.0)>initial_size:
+        size_y=abs(diff_y*2.0)
     else:
         size_y=initial_size
     
-    if abs(diff_z*2.5)>initial_size:
-        size_z=abs(diff_z*2.5)
+    if abs(diff_z*2.0)>initial_size:
+        size_z=abs(diff_z*2.0)
     else:
         size_z=initial_size
     
