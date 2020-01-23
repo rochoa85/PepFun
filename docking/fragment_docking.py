@@ -49,11 +49,6 @@ from rdkit.Chem import AllChem
 # BioPython
 from Bio.PDB import *
 
-# Pyrosetta
-# from pyrosetta import *
-# from pyrosetta.teaching import *
-# from pyrosetta.toolbox import cleanATOM
-
 # Modeller
 import modeller
 from modeller.automodel import *
@@ -265,7 +260,9 @@ def generate_box_initial(sequence,center_x,center_y,center_z,pdb):
     
     Return:
     Configuration file with the coordinates
-    size_x -- Initial size of the cubic box
+    size_x -- Initial size of the cubic box in x
+    size_y -- Initial size of the cubic box in y
+    size_z -- Initial size of the cubic box in z
     """
     
     # Peptide lenght
@@ -298,11 +295,11 @@ def generate_box_initial(sequence,center_x,center_y,center_z,pdb):
     config.close()
     
     # Return the cubic size
-    return size_x
+    return size_x,size_y,size_z
 
 ################################################################
 
-def generate_box(sequence,center_x,center_y,center_z,pdb,initial_size):
+def generate_box(sequence,center_x,center_y,center_z,pdb,ref_size_x,ref_size_y,ref_size_z):
     """
     Function to generate the subsequent boxes for the docking
     
@@ -312,7 +309,9 @@ def generate_box(sequence,center_x,center_y,center_z,pdb,initial_size):
     center_y -- center in y of the defined box
     center_z -- center in z of the defined box
     pdb -- Structure file
-    initial_size -- size of the previous box
+    ref_size_x -- size of the previous box in x
+    ref_size_y -- size of the previous box in y
+    ref_size_z -- size of the previous box in z
     
     Return:
     Configuration file with the coordinates
@@ -332,20 +331,20 @@ def generate_box(sequence,center_x,center_y,center_z,pdb,initial_size):
     diff_z=model["A"][1]["CA"].coord[2]-model["A"][number_amino]["CA"].coord[2]
     
     # Assign the sizes based on the growing direction of the peptide
-    if abs(diff_x*2.5)>initial_size:
+    if abs(diff_x*2.5)>ref_size_x:
         size_x=abs(diff_x*2.5)
     else:
-        size_x=initial_size
+        size_x=ref_size_x
         
-    if abs(diff_y*2.5)>initial_size:
+    if abs(diff_y*2.5)>ref_size_y:
         size_y=abs(diff_y*2.5)
     else:
-        size_y=initial_size
+        size_y=ref_size_y
     
-    if abs(diff_z*2.5)>initial_size:
+    if abs(diff_z*2.5)>ref_size_z:
         size_z=abs(diff_z*2.5)
     else:
-        size_z=initial_size
+        size_z=ref_size_z
     
     # Exhaustiveness. This will depend on the number of cores
     exhaustiveness=int(multiprocessing.cpu_count())
@@ -360,6 +359,9 @@ def generate_box(sequence,center_x,center_y,center_z,pdb,initial_size):
     config.write("size_z={}\n".format(size_z))
     config.write("exhaustiveness={}".format(exhaustiveness))
     config.close()
+    
+    # Return the cubic size
+    return size_x,size_y,size_z
 
 ################################################################
 
@@ -567,7 +569,7 @@ if __name__ == '__main__':
     protonation("pepM_{}".format(peptide),pH)
     
     # Docking
-    initial_size=generate_box_initial(peptide,center_x,center_y,center_z,"pepM_{}.pdb".format(peptide))
+    size_x,size_y,size_z=generate_box_initial(peptide,center_x,center_y,center_z,"pepM_{}.pdb".format(peptide))
     num_models=docking(receptor,"pepM_{}".format(peptide),peptide,0)
     new_coordinates("pepM_{}".format(peptide),"model1_step0")
     
@@ -615,7 +617,7 @@ if __name__ == '__main__':
         protonation("pepM_step{}".format(i+1),pH)
         
         # Generate the box
-        generate_box(frag,center_x,center_y,center_z,"pepM_step{}.pdb".format(i+1),initial_size)
+        size_x,size_y,size_z=generate_box(frag,center_x,center_y,center_z,"pepM_step{}.pdb".format(i+1),size_x,size_y,size_z)
         num_models=docking(receptor,"pepM_step{}".format(i+1),frag,i+1)
         
         # Check if no models were produced to exit
