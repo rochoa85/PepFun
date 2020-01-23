@@ -6,7 +6,7 @@
 
 ######
 ## Set some environment variable.
-MGL_ROOT="/home/rochoa/MGLTools-1.5.6" 
+MGL_ROOT="/usr/local/MGLTools-1.5.6" 
 export MGL_ROOT
 
 ########

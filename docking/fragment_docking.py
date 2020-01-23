@@ -332,18 +332,18 @@ def generate_box(sequence,center_x,center_y,center_z,pdb,initial_size):
     diff_z=model["A"][1]["CA"].coord[2]-model["A"][number_amino]["CA"].coord[2]
     
     # Assign the sizes based on the growing direction of the peptide
-    if abs(diff_x*2.0)>initial_size:
-        size_x=abs(diff_x*2.0)
+    if abs(diff_x*2.5)>initial_size:
+        size_x=abs(diff_x*2.5)
     else:
         size_x=initial_size
         
-    if abs(diff_y*2.0)>initial_size:
-        size_y=abs(diff_y*2.0)
+    if abs(diff_y*2.5)>initial_size:
+        size_y=abs(diff_y*2.5)
     else:
         size_y=initial_size
     
-    if abs(diff_z*2.0)>initial_size:
-        size_z=abs(diff_z*2.0)
+    if abs(diff_z*2.5)>initial_size:
+        size_z=abs(diff_z*2.5)
     else:
         size_z=initial_size
     
@@ -552,7 +552,7 @@ if __name__ == '__main__':
     pH=5.3
     # Center of reference selected by the user
     center_x=-5.256
-    center_y=26.343
+    center_y=26.5
     center_z=-2.416
     
     ####################################################################################
