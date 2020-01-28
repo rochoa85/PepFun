@@ -243,6 +243,7 @@ def protonation(molecule,pH):
     """
     
     os.system("./scripts/pdb2pqr-linux/pdb2pqr --with-ph={} --ph-calc-method=propka --drop-water --apbs-input --ff=amber --verbose --chain --summary {mol}.pdb {mol}.pqr".format(pH,mol=molecule))
+    #os.system("pdb2pqr --with-ph={} --ph-calc-method=propka --drop-water --apbs-input --ff=amber --verbose --chain --summary {mol}.pdb {mol}.pqr".format(pH,mol=molecule))
     os.system("rm {mol}.in {mol}-input.p {mol}.summary {mol}.propka".format(mol=molecule))
 
 ################################################################
@@ -553,8 +554,8 @@ if __name__ == '__main__':
     number_chains=2
     pH=5.3
     # Center of reference selected by the user
-    center_x=-5.256
-    center_y=26.5
+    center_x=-7.1 #-5.256
+    center_y=24.5 #26.5
     center_z=-2.416
     
     ####################################################################################
