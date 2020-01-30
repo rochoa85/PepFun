@@ -5,7 +5,7 @@ Pepfun: bioinformatics and cheminformatics protocols for peptide-related computa
 
 From publication "Pepfun: bioinformatics and cheminformatics protocols for peptide-related computational analysis"
 Journal of Cheminformatics 
-Authors: Rodrigo Ochoa, Roman Laskowski, ..., Pilar Cossio
+Authors: Rodrigo Ochoa, Roman Laskowski, Pilar Cossio
 Year: 2020
 
 Third-party tools required:
@@ -45,6 +45,8 @@ from Bio.SubsMat import MatrixInfo as matlist
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
 from Bio.PDB import *
 from Bio import SeqIO
+from Bio.Blast import NCBIWWW
+from Bio.Blast import NCBIXML
 
 # RDKit
 from rdkit import Chem
@@ -130,7 +132,7 @@ def generate_sequences(long_peptide,aa_type="natural"):
         for i in itertools.product(combined, repeat=long_peptide):
             if "[" in f: frags.append(''.join(map(str, i)))
     else:
-        print "The type of amino acid is invalid"
+        print("The type of amino acid is invalid")
         
     # Return the list of peptide sequences
     return frags
@@ -240,8 +242,8 @@ def frequencies_library(peptides):
             count_dict[pos+1][aa]+=1
     
     # Print the dictionary
-    for key in count_dict:
-        print key,count_dict[key]
+    #for key in count_dict:
+    #    print key,count_dict[key]
     
     # Return the dictionary
     return count_dict
@@ -440,8 +442,6 @@ class peptide_sequence:
         self.mol_weight = Descriptors.MolWt(mol)
         self.mol_logp = Crippen.MolLogP(mol)
     
-
-    
     ############################################################################           
     def calculate_properties_from_sequence(self):
         """
@@ -563,13 +563,48 @@ class peptide_sequence:
         mol = Chem.MolFromSmiles(self.smiles)
         mol.SetProp("_Name",self.sequence)
         
-        print "Generating the basic conformer for peptide {}".format(self.sequence)
+        print("Generating the basic conformer for peptide {}".format(self.sequence))
         
-        # Use UFF force field
         AllChem.EmbedMolecule(mol)
         AllChem.UFFOptimizeMolecule(mol)
         writer = AllChem.SDWriter("structure_%s.sdf" %self.sequence)
         writer.write(mol)
+        
+    ############################################################################
+    def blast_online(self):
+        """
+        Function to run online blast configured with parameters suitable to compare peptides
+        
+        Return:
+        hits - List of hits with dictionary containing fields from the alignment result
+        """
+        # Create a temporal fasta file with the sequence
+        fasta_file=open("{}.fasta".format(self.sequence),"w")
+        fasta_file.write(">sequence\n{}".format(self.sequence))
+        fasta_file.close()
+        
+        record = SeqIO.read("{}.fasta".format(self.sequence), format="fasta")
+        result_handle = NCBIWWW.qblast("blastp", "nr", record.format("fasta"),word_size=2, expect=20000.0, matrix_name="PAM30", gapcosts="9 1", format_object="Alignment")
+        os.system("rm {}.fasta".format(self.sequence))
+        b_record = NCBIXML.read(result_handle)
+        
+        # Parse the results
+        hits=[]
+        for alignment in b_record.alignments:
+            for hsp in alignment.hsps:
+                dict_hits={}
+                dict_hits["identities"]=hsp.identities
+                dict_hits["positives"]=hsp.positives
+                dict_hits["gaps"]=hsp.gaps
+                dict_hits["align_length"]=hsp.align_length
+                dict_hits["query_start"]=hsp.query_start
+                dict_hits["e-value"]=hsp.expect
+                dict_hits["query_sequence"]=hsp.query[0:75]
+                dict_hits["match_id"]=alignment.title[:100]
+                dict_hits["subject_sequence"]=hsp.sbjct[0:75]
+                hits.append(dict_hits)
+        
+        return hits
                 
 ########################################################################################
     
@@ -628,13 +663,16 @@ class peptide_structure:
         Return:
         The dictionary positions will store the calculated data of dssp and the asa values
         total_dssp will contain the complete predicted secondary structure with the following conventions:
-        B -
+        B - beta bridge
         H - alpha helix
-        E - beta sheets
+        E - beta strand
+        S - bend
+        T - turn
+        G - 3/10 helix
         """
         
         model=self.reference[0]
-        dssp = DSSP(model,self.pdb_file,dssp='auxiliar/mkdssp')
+        dssp = DSSP(model,self.pdb_file,dssp='mkdssp')
         self.total_dssp=""
         
         # Loop over the keys from the dssp response to store ss and asa values
@@ -658,7 +696,7 @@ class peptide_structure:
         
         # Read the protein structure
         model=self.reference[0]
-        dssp = DSSP(model,self.pdb_file,dssp='auxiliar/mkdssp')
+        dssp = DSSP(model,self.pdb_file,dssp='mkdssp')
         self.total_dssp=""
         
         # Loop over the keys from the dssp response to store ss and asa values
@@ -698,11 +736,11 @@ class peptide_structure:
         
         # Iterate over the peptide residues to show the hydrogen bonds
         self.number_hydrogen_bonds=0
-        output_hydrogen_bonds=open("auxiliar/predicted_hbs_{}.txt".format(self.sequence),"w")
-        print "These are the hydrogen bonds detected:"
+        output_hydrogen_bonds=open("predicted_hbs_{}.txt".format(self.sequence),"w")
+        print("These are the hydrogen bonds detected:")
         for residue in self.hbonds_peptide:
             for partners in self.hbonds_peptide[residue]:
-                print "{} interacts with residue {}{} from chain {}".format(residue,partners[1],partners[2],partners[0])
+                print("{} interacts with residue {}{} from chain {}".format(residue,partners[1],partners[2],partners[0]))
                 output_hydrogen_bonds.write("{} interacts with residue {}{} from chain {}\n".format(residue,partners[1],partners[2],partners[0]))
                 self.number_hydrogen_bonds+=1
         output_hydrogen_bonds.close()
@@ -792,10 +830,6 @@ class peptide_structure:
                     
                     number_ch_ele=chain_nodes.count(ele)
                     c_nod=(len(self.hbonds_peptide)/2)-(number_ch_ele/2)
-                    #for inter in pep_interactions:
-                    #    if inter[1]==c:
-                    #        c_nod=inter[0]
-                    #        break
                     layout.append((c_nod,positions[c_pos]))
                     c_nod+=1
             bbox=(1200,400)
@@ -812,7 +846,7 @@ class peptide_structure:
         visual_style["layout"] = layout
         visual_style["bbox"] = bbox
         visual_style["margin"] = 80
-        plot(g,"auxiliar/plot_hbs_{}.png".format(self.sequence), **visual_style)
+        plot(g,"plot_hbs_{}.png".format(self.sequence), **visual_style)
         
     ############################################################################
     
@@ -888,89 +922,85 @@ if __name__ == '__main__':
     
     # Script arguments
     parser = argparse.ArgumentParser(description='Pepfun: bioinformatics and cheminformatics protocols for peptide-related computational analysis')
-    parser.add_argument('-s', dest='pep_seq', action='store',#required=True,
+    parser.add_argument('-m', dest='mode', action='store', required=True,
+                        help='Choose a mode to run the script from two options: 1) sequence, 2) structure.') 
+    parser.add_argument('-s', dest='pep_seq', action='store',
                         help='Sequence of peptide to be analyzed')
-    parser.add_argument('-p', dest='pep_str', action='store', default="auxiliar/example_structure.pdb",
+    parser.add_argument('-p', dest='pep_str', action='store',
                         help='Structure that will be used for the analysis')
+    parser.add_argument('-c', dest='pep_chain', action='store',
+                        help='Chain of the peptide in the structure')
+    parser.add_argument('-b', dest='pep_conformation', action='store',default="linear",
+                        help='Conformation of the peptide in the structure that will be used to plot hydrogen bonds')
+    parser.add_argument('-t', dest='contact_threshold', action='store',default=4.0,
+                        help='Threshold to count contacts between the peptide and the protein')
     # Pending add more
     args = parser.parse_args()
     
     ####################################################################################
     # Assignment of parameters
-    sequence=args.pep_seq
-    # sequence="KMGRLFR"
+    mode=args.mode
     
-    ############################################################
-    # Test peptide sequence functions
-    ############################################################
-    print
-    print "### TEST PEPTIDE SEQUENCE FUNCTIONS ###"
-    pep=peptide_sequence(sequence)
-    print "The main peptide sequence is: ",pep.sequence
+    # Basic analysis using as input the sequence of a peptide
+    if mode=="sequence":
+        if args.pep_seq:
+            sequence=args.pep_seq
+        else:
+            print("The sequence is required to run the analysis. You can include it using the option -s")
+            exit()
+            
+        print("The sequence entered is {}".format(sequence))
+        print("### 1. Analysis of properties based on the peptide sequence ... ###")
+        pep=peptide_sequence(sequence)
+        pep.compute_peptide_charges()
+        pep.calculate_properties_from_mol()
+        pep.calculate_properties_from_sequence()
+        pep.solubility_rules()
+        pep.synthesis_rules()
+        
+        sequence_report=open("sequence_analysis_{}.txt".format(sequence),"w")
+        sequence_report.write("The main peptide sequence is: {}\n".format(pep.sequence))
+        sequence_report.write("Net charge at pH 7: {}\n".format(pep.netCharge))
+        sequence_report.write("Molecular weight: {}\n".format(pep.mol_weight))
+        sequence_report.write("Average Hydrophobicity: {}\n".format(pep.avg_hydro))
+        sequence_report.write("Isoelectric Point: {}\n".format(pep.isoelectric_point))
+        sequence_report.write("Instability index: {}\n".format(pep.instability_index))
+        sequence_report.write("Number of hydrogen bond acceptors: {}\n".format(pep.num_hacceptors))
+        sequence_report.write("Number of hydrogen bond donors: {}\n".format(pep.num_hdonors))
+        sequence_report.write("Crippen LogP: {}\n".format(pep.mol_logp))
+        sequence_report.write("{} solubility rules failed from 5\n".format(pep.solubility_rules_failed))
+        sequence_report.write("{} synthesis rules failed from 5\n".format(pep.synthesis_rules_failed))
+        sequence_report.close()
+        
+        print("### Done ###")
+        print("### 2. Prediction of basic conformer ... ###")
+        pep.generate_conformer()
+        print("### Done ###")
     
-    pep.compute_peptide_charges()
-    print "Net charge at pH 7: ",pep.netCharge
+    # Basic analysis using as input the structure of a peptid in complex with a protein
+    if mode=="structure":
+        if args.pep_str and args.pep_chain :
+            pdb_file=args.pep_str
+            chain=args.pep_chain
+            contact_threshold=args.contact_threshold
+            pep_conformation=args.pep_conformation
+        else:
+            print("The structure and the peptide chain are required to run the analysis. You can include them using the options -p and -c")
+            exit()
     
-    pep.calculate_properties_from_mol()
-    print "Molecular weight: ",pep.mol_weight
+        print("### 1. Analysis of secondary structure and interactions based on the peptide structure ... ###")
+        pepStr=peptide_structure(pdb_file,chain)
+        pepStr.get_secondary_structure()
+        pepStr.get_hydrogen_bonds()
+        pepStr.get_heavy_atom_contacts(contact_threshold)
     
-    pep.calculate_properties_from_sequence()
-    print "Average Hydrophobicity: ",pep.avg_hydro
-    print "Isoelectric Point: ",pep.isoelectric_point
+        structure_report=open("structure_analysis_{}.txt".format(pepStr.sequence),"w")
+        structure_report.write("Peptide sequence based on the PDB file is: {}\n".format(pepStr.sequence))
+        structure_report.write("The predicted secondary structure is: {}\n".format(pepStr.total_dssp))
+        structure_report.write("The total number of contacts are: {}\n".format(pepStr.total_contacts))
+        structure_report.write("The total number of hydrogen bonds are: {}\n".format(pepStr.number_hydrogen_bonds))
     
-    matrix=matlist.structure
-    pep.align_position_matrix("KAGRSFR",matrix)
-    print "Alignment score by position with peptide KAGRSFR is: ",pep.score_matrix
-    
-    pep.align_position_local("KAGRSFR")
-    print "The number of dismatches with peptide KAGRSFR are: ",pep.dismatch
-    
-    similarity=pep.similarity_pair("KMGRLFR","KAGRSFR",matrix)
-    print "The similarity between peptides KMGRLFR and KAGRSFR is: ",similarity
-    
-    pep.similar_smiles("KAGRSFR")
-    print "The SMILES similarity is: ",pep.smiles_similarity
-    
-    pep.solubility_rules()
-    print "{} solubility rules failed from 5".format(pep.solubility_rules_failed)
-    
-    pep.synthesis_rules()
-    print "{} synthesis rules failed from 5".format(pep.synthesis_rules_failed)
-    
-    ############################################################
-    # Test peptide structure functions
-    ############################################################
-    print
-    print "### TEST PEPTIDE STRUCTURE FUNCTIONS ###"
-    #pdb_file="auxiliar/example_structure.pdb"
-    pdb_file=args.pep_str
-    chain="B"
-    pepStr=peptide_structure(pdb_file,chain)
-    print "Peptide sequence bsaed on the PDB file is: ",pepStr.sequence
-    
-    pepStr.get_secondary_structure()
-    print "The predicted secondary structure is: ",pepStr.total_dssp
-    
-    pepStr.get_hydrogen_bonds()
-    pepStr.plot_hydrogen_bonds("linear")
-    
-    contact_threshold=4.0
-    pepStr.get_heavy_atom_contacts(contact_threshold)
-    
-    print "The total number of contacts are: ",pepStr.total_contacts
-    print "The following are the details per amino acid in the peptide:"
-    print pepStr.positions
-    
-    ############################################################
-    # Test additional functions
-    ############################################################
-    print
-    print "### TEST ADDITIONAL FUNCTIONS ###"
-    #list_peptides=generate_sequences(2,"natural")
-    #list_peptides=combinatorial_library(10,"natural")
-    list_peptides=generate_peptide_pattern("XERTX")
-    print "The number of peptides generated in the library are: ",len(list_peptides)
-    library_report=open("auxiliar/library_generated.txt","w")
-    for pep in list_peptides: library_report.write("{}\n".format(pep))
-    library_report.close()
-     
+        print("### Done ###")
+        print("### 2. Plot of the hydrogen bonds and detail description of the atoms involved ... ###")
+        pepStr.plot_hydrogen_bonds(pep_conformation)
+        print("### Done ###")
