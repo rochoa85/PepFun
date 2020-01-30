@@ -982,7 +982,7 @@ if __name__ == '__main__':
         if args.pep_str and args.pep_chain :
             pdb_file=args.pep_str
             chain=args.pep_chain
-            contact_threshold=args.contact_threshold
+            contact_threshold=float(args.contact_threshold)
             pep_conformation=args.pep_conformation
         else:
             print("The structure and the peptide chain are required to run the analysis. You can include them using the options -p and -c")
