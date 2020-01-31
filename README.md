@@ -15,7 +15,7 @@ PepFun is a compilation of bioinformatics and chemoinformatics functionalities t
 - BioPython: https://biopython.org/wiki/Download
 - RDKit: https://github.com/rdkit/rdkit/releases
 
-To allow the execution of PepFun with python3 and the required dependencies, the best option is generate a conda virtual environment. For that purpose, the following command can be used:
+To allow the execution of PepFun with python3 and the required dependencies, the best option is to generate a conda virtual environment. For that purpose, the following command can be used:
 
 `conda create -c rdkit -n pepfun-env rdkit biopython matplotlib scipy pip pycairo nb_conda_kernels`
 
@@ -23,13 +23,13 @@ To activate the environment you can use the command:
 
 `conda activate pepfun-env`
 
-After entering the virtual environment, this notebook can be called with jupyter and selecting the kernel provided by this conda instance. Then, we can install the igraph module for python3 using pip:
+After entering the virtual environment, we can install the igraph module for python3 using pip:
 
 `pip install python-igraph`
 
 ## How to run the script
 
-PepFun can be called as a module in other script in order to use their functionalities and combine the output with other tools. Examples of this are provided in the *test.py* script. However, the script by itself can be called to run some basic sequence- and structure based analysis with peptide based on the following syntax:
+PepFun can be called as a module into another script to use their functionalities and combine the output with other tools. Examples of this mode are provided in the *test.py* script. However, the script by itself can be called to run some basic sequence- and structure-based analysis with peptides using the following syntax:
 
 `peptide_functions.py [-h] -m MODE [-s PEP_SEQ] [-p PEP_STR]
                             [-c PEP_CHAIN] [-b PEP_CONFORMATION]
@@ -51,20 +51,17 @@ arguments:
                         the protein
  ```
  
-The main required argument is the mode, which is *sequence* or *structure* depending on the required analysis. If *sequence* mode is selected, an amino acid string should be provided. If *structure* mode is selected, various arguments should be provided. These include the path to the PDB file with the peptide alone or in complex with a protein, the chain ID of the peptide in the structure, the conformation of the peptide (by default is *linear*, or can be *cyclic*), and a contact threshold defined to count the interactions of the peptide with the protein chains (by default is *4.0*).
+The main required argument is the mode, which is *sequence* or *structure* depending on the required analysis. If *sequence* mode is selected, an amino acid string should be provided. If *structure* mode is selected, various arguments should be provided. These include the path to the PDB file having the peptide alone or in complex with a protein, the chain ID of the peptide in the structure, the conformation of the peptide (by default is *linear*, or can be *cyclic*), and a contact threshold defined to count the interactions of the peptide with the protein chains (by default is *4.0*).
 
 ## User examples
 
 ### Calculate sequence properties
 
-As a first way to run the script as an user, there is the option to calculate a set of properties. For that purpose, the script can be called as:
+As an example to run the script as an user, we can calculate a set of properties. For that purpose, the script can be called as:
 
 `python peptide_functions.py -m sequence -s GYTRTEGSDF`
 
-The output 
-
-After that, the models will be stored in the **models/model_ready** folder with the name `sequence\_analysis\_[sequence].pdb`, where the sequence is the peptide that will be analyzed:
-
+The output is a file with the name `sequence\_analysis\_[sequence].txt`, where multiple properties for the required sequence are reported. An example of this is:
 
 ```
 The main peptide sequence is: GYTRTEGSDF
@@ -80,27 +77,24 @@ Crippen LogP: -7.4280300000000254
 0 synthesis rules failed from 5
 ```
 
-In addition, a file named `structure_[sequence].sdf` will contain the peptide structure predicted by the conformer option in RDKit. These can be converted to a PDB file using OpenBabel, allowing the correct numeration and order of the amino acids in the file.
+In addition, a file named `structure_[sequence].sdf` will contain the peptide structure predicted by the conformer option in RDKit. These can be converted to a PDB file using OpenBabel to allow the correct numeration and order of the amino acids in the structure file.
 
 
 ### Calculate structural information of a protein-peptide complex
 
-For the second case, we require the modification of a NNAA for a natural amino acid based on a similarity threshold defined by the user (called *complete* in the script). It means that we can model a substrate depending on how similar we want the template and new amino acids be. The following is an example based on a particular PDB structure available in the dataset:
+For the second case, we can call the script to obtain some information of a structure containing a peptide alone or in complex with a protein. This is an example using a structure provided in the auxiliar folder of the code:
 
 `python peptide_functions.py -m structure -p auxiliar/example_structure.pdb -c C -b linear -t 4.0`
 
-Here we are modelling a substrate based on the template present in the structure with PDB id 1tps. The natural amino acid that will replace the present NNAA require to be at least 40\% similar based on the Tanimoto comparison of the amino acid side chains. We selected serine proteases as the reference family, and the MEROPS credentials are also provided to look for reported substrates.
-
-After that, the model is stored in the **models/model_complete** folder with the name `[structure]\_[substrate sequence]\_modelled.pdb`, where the structure is the PDB id and the substrate sequence is the peptide that was fully modelled using the protocol. A report of the model is provided in the following form:
+Here we are analyzing a peptide bound to the MHC class II protein, which chain ID is C and has a linear bound conformation. To count the number of contacts, we selected as threshold a value of 4.0. After running the script, we obtain the file `structure\_analysis\_[sequence].txt` with the report of some interaction observables:
 
 ```
 Peptide sequence based on the PDB file is: NPVVHFFKNIVTPRTPPPSQ
-The predicted secondary structure is: 
 The total number of contacts are: 181
 The total number of hydrogen bonds are: 25
 ```
 
-Here the fragment LTREL was modelled into the 8-mer peptide FLTRELAE, which is part of the substrate protein with UniProtKB id P23396. The model was performed using the protease structure with PDB id 1tps that belongs to the MEROPS family S01.151 (trypsin). In addition, a NNAA from the original structure had to be changed by another one reported in the substrate, in this case the residue DLE by an L-Leucine, with a similarity of 100\%.
+In addition, we report the details of the hydrogen bonds detected between the peptide and the protein, and a plot of the interactions based on the selected conformation: linear or cyclic.
 
 ```
 These are the hydrogen bonds detected:
@@ -132,13 +126,15 @@ P18 interacts with residue L70 from chain A
 
 ```
 
-## Developer modifications
+### Specialized tutorial for developers
 
-Tutorial
+In case the user want to explore in detail the functions and applications using massive datasets, a Jupyter notebook is provided to run a set of operations with PepFun modules. *To run successfully the example please verify that the conda environment was created successfully.*
 
-### How to run the sampling script
+### How to access the fragment-docking script
 
-After having modelled 8-mer peptides in protease reference structures, it is possible to call the second script for modelling any peptide of interest, run a simulation of the system using the backrub method from Rosetta and calculate structural descriptors from the trajectory. The basic command line to run the script is:
+Because the fragment-docking protocol depends on multiple additional resources and a Unix environment, we provide the code in the form of a docker with all the required dependencies. You can find the docker container here: XXX
+
+An example of the script syntax is as follows::
 
 `fragment_docking.py [-h] -s PEP_SEQ -f PEP_FRAG -t TARGET -n NUM_CHAINS
                            -x CENTER_X -y CENTER_Y -z CENTER_Z [-p PEP_PH]`
@@ -158,25 +154,20 @@ arguments:
   -p PEP_PH      pH of the system
  ```
 
-The required arguments are the path of the model that we want to use as template, the sequence of the peptide that will be modelled, and the chain of the peptide in the structure of reference. **Please be aware of changing the Rosetta version through the flag or directly in the script by default.**
+In addition of the script, the folder require of the target PDB structure file, a folder with a set of necessary scripts, and an output folder where the docking results step by step will be stored.
 
 ```
-[target].pdb
-output
-scripts
+[target].pdb output scripts
 ```
-
-
-### Use a docker container with all the required dependencies
+An example to run the protocol script using the structure provided in the docker folder `/home/docking` is here:
 
 `
 python3 fragment_docking.py -s ENPVVHFFKNIVTPR -f FFK -t 1BX2-ABP -n 2 -x "-7.1" -y "24.5" -z "-2.41"
 `
 
-To run the dynamic analysis of a peptide of reference, we can call the script as:
+The method will start the modelling of the initial script, and the docking of the fragment after each growing step, until the peptide obtain the final desired size. The code can be modified to modifiy box sizes, as well as verify if the conformation of the growing ligand is according to previous findings of the biological system. An example of the output docked result, and the configuration each docking step is available in the output folder as follows:
 
 `final_complex_ENPVVHFFKNIVTPR.pdb  step0  step1  step2	step3  step4  step5  step6`
-
 
 
 ## Support
