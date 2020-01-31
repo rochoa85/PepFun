@@ -1,6 +1,4 @@
 language: python
-# group: travis_latest
-#sudo: false
 python:
   - "3.7"
 install:
@@ -16,3 +14,5 @@ install:
   - conda create -c rdkit -y -n pepfun-env rdkit biopython matplotlib scipy pip pycairo nb_conda_kernels
   - source activate pepfun-env
   - pip install python-igraph
+script:
+  - python test.py
