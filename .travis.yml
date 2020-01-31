@@ -1,3 +1,20 @@
-language: generic
+language: python
 group: travis_latest
-sudo: false
+#sudo: false
+python:
+  - "2.7"
+  - "3.5"
+  - "3.6"
+install:
+  - sudo apt-get update
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - conda config --set always_yes yes --set changeps1 no
+  - conda config --add channels conda-forge
+  - conda update --yes conda
+  # Useful for debugging any issues with conda
+  - conda info -a
+  - conda create -c rdkit -n pepfun-env rdkit biopython matplotlib scipy pip pycairo nb_conda_kernels
+  - source activate pepfun-env
+  - pip install python-igraph
