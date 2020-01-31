@@ -672,7 +672,7 @@ class peptide_structure:
         """
         
         model=self.reference[0]
-        dssp = DSSP(model,self.pdb_file,dssp='mkdssp')
+        dssp = DSSP(model,self.pdb_file,dssp='auxiliar/mkdssp')
         self.total_dssp=""
         
         # Loop over the keys from the dssp response to store ss and asa values
@@ -696,7 +696,7 @@ class peptide_structure:
         
         # Read the protein structure
         model=self.reference[0]
-        dssp = DSSP(model,self.pdb_file,dssp='mkdssp')
+        dssp = DSSP(model,self.pdb_file,dssp='auxiliar/mkdssp')
         self.total_dssp=""
         
         # Loop over the keys from the dssp response to store ss and asa values
