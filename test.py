@@ -1,11 +1,11 @@
 #!/usr/bin/python
 
 """
-Pepfun: bioinformatics and cheminformatics protocols for peptide-related computational analysis
+PepFun: open source protocols for peptide-related computational analysis
 
-From publication "Pepfun: bioinformatics and cheminformatics protocols for peptide-related computational analysis"
+From publication "PepFun: open source protocols for peptide-related computational analysis"
 Journal of Cheminformatics 
-Authors: Rodrigo Ochoa, Roman Laskowski, Pilar Cossio
+Authors: Rodrigo Ochoa, Pilar Cossio
 Year: 2020
 
 Script to test the PepFun functionalities
@@ -16,7 +16,7 @@ Script to test the PepFun functionalities
 ########################################################################################
 
 __author__ = "Rodrigo Ochoa"
-__credits__ = ["Rodrigo Ochoa", "Roman Laskowski", "Pilar Cossio"]
+__credits__ = ["Rodrigo Ochoa", "Pilar Cossio"]
 __license__ = "MIT"
 __version__ = "1.0"
 __email__ = "rodrigo.ochoa@udea.edu.co"

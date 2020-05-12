@@ -2,13 +2,13 @@
 
 ## Package with bioinformatics and cheminformatics protocols for peptide analysis
 
-* From publication "Pepfun: bioinformatics and cheminformatics protocols for peptide-related computational analysis"
+* From publication "PepFun: open source protocols for peptide-related computational analysis"
 * Journal of Cheminformatics, 2020
-* Authors: Rodrigo Ochoa, Roman Laskowski, Pilar Cossio
+* Authors: Rodrigo Ochoa, Pilar Cossio
 
 ## Purpose
 
-PepFun is a compilation of bioinformatics and chemoinformatics functionalities that are easy to implement and personalize for studying peptides at different levels: sequence, structure and their interactions. The package has been created under the python scripting language based on built-in functions and methods available in the open source projects BioPython and RDKit. Some of the prediction and characterization tools were tested with two datasets of peptide binders of known protein systems, the MHC class II and the Granzyme B protease. In addition, a fragment-growing peptide docking protocol is provided to predict bound conformations of flexible peptides, and their interactions with relevant protein targets
+PepFun is a compilation of bioinformatics and chemoinformatics functionalities that are easy to implement and personalize for studying peptides at different levels: sequence, structure and their interactions. The package has been created under the python scripting language based on built-in functions and methods available in the open source projects BioPython and RDKit. Some of the prediction and characterization tools were tested with two datasets of peptide binders of known protein systems, the MHC class II and the Granzyme B protease.
 
 ## Third-party tools required:
 
@@ -21,7 +21,7 @@ To allow the execution of PepFun with python3 and the required dependencies, the
 
 To activate the environment you can use the command:
 
-`conda activate pepfun-env`
+`source activate pepfun-env`
 
 After entering the virtual environment, we can install the igraph module for python3 using pip:
 
@@ -129,46 +129,6 @@ P18 interacts with residue L70 from chain A
 ### Specialized tutorial for developers
 
 In case the user want to explore in detail the functions and applications using massive datasets, a Jupyter notebook is provided to run a set of operations with PepFun modules. *To run successfully the example please verify that the conda environment was created successfully.*
-
-### How to access the fragment-docking script
-
-Because the fragment-docking protocol depends on multiple additional resources and a Unix environment, we provide the code in the form of a docker with all the required dependencies. You can find the docker container here: XXX
-
-An example of the script syntax is as follows::
-
-`fragment_docking.py [-h] -s PEP_SEQ -f PEP_FRAG -t TARGET -n NUM_CHAINS
-                           -x CENTER_X -y CENTER_Y -z CENTER_Z [-p PEP_PH]`
-                                       
-where the arguments are:
-
-```
-arguments:
-  -h, --help     show this help message and exit
-  -s PEP_SEQ     Sequence of peptide to be analyzed
-  -f PEP_FRAG    Fragment that will be used as initial anchor
-  -t TARGET      Name of the PDB structure used as target
-  -n NUM_CHAINS  Number of chains present in the target structure
-  -x CENTER_X    Coordinate in X of the box center
-  -y CENTER_Y    Coordinate in Y of the box center
-  -z CENTER_Z    Coordinate in Z of the box center
-  -p PEP_PH      pH of the system
- ```
-
-In addition of the script, the folder require of the target PDB structure file, a folder with a set of necessary scripts, and an output folder where the docking results step by step will be stored.
-
-```
-[target].pdb output scripts
-```
-An example to run the protocol script using the structure provided in the docker folder `/home/docking` is here:
-
-`
-python3 fragment_docking.py -s ENPVVHFFKNIVTPR -f FFK -t 1BX2-ABP -n 2 -x "-7.1" -y "24.5" -z "-2.41"
-`
-
-The method will start the modelling of the initial script, and the docking of the fragment after each growing step, until the peptide obtain the final desired size. The code can be modified to modifiy box sizes, as well as verify if the conformation of the growing ligand is according to previous findings of the biological system. An example of the output docked result, and the configuration each docking step is available in the output folder as follows:
-
-`final_complex_ENPVVHFFKNIVTPR.pdb  step0  step1  step2	step3  step4  step5  step6`
-
 
 ## Support
 

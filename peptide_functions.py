@@ -1,11 +1,11 @@
 #!/usr/bin/python
 
 """
-Pepfun: bioinformatics and cheminformatics protocols for peptide-related computational analysis
+PepFun: open source protocols for peptide-related computational analysis
 
-From publication "Pepfun: bioinformatics and cheminformatics protocols for peptide-related computational analysis"
+From publication "PepFun: open source protocols for peptide-related computational analysis"
 Journal of Cheminformatics 
-Authors: Rodrigo Ochoa, Roman Laskowski, Pilar Cossio
+Authors: Rodrigo Ochoa, Pilar Cossio
 Year: 2020
 
 Third-party tools required:
@@ -19,7 +19,7 @@ RDKit: https://github.com/rdkit/rdkit/releases - Ubuntu package: python-biopytho
 ########################################################################################
 
 __author__ = "Rodrigo Ochoa"
-__credits__ = ["Rodrigo Ochoa", "Roman Laskowski", "Pilar Cossio"]
+__credits__ = ["Rodrigo Ochoa", "Pilar Cossio"]
 __license__ = "MIT"
 __version__ = "1.0"
 __email__ = "rodrigo.ochoa@udea.edu.co"
@@ -555,20 +555,23 @@ class peptide_sequence:
         Function to generate basic conformer using RDKit
         
         Return:
-        Structure predicted in sdf format
-        NOTE: using OpenBabel the structure can be converted to PDB format using:
-        babel -isdf structure_{peptide}.sdf -opdb structure_{peptide}.pdb
+        Structure predicted in PDB format
         """
-        # Generate molecule from smiles
-        mol = Chem.MolFromSmiles(self.smiles)
-        mol.SetProp("_Name",self.sequence)
         
+        # Generate molecule using the sequence and HELM notation
+        helm=".".join(list(self.sequence))
+        mol = Chem.MolFromHELM("PEPTIDE1{%s}$$$$" %helm)
+        mol.SetProp("_Name",self.sequence)    
+        
+        # Generate the conformer using UFF force field
         print("Generating the basic conformer for peptide {}".format(self.sequence))
-        
         AllChem.EmbedMolecule(mol)
         AllChem.UFFOptimizeMolecule(mol)
-        writer = AllChem.SDWriter("structure_%s.sdf" %self.sequence)
-        writer.write(mol)
+        
+        # Write PDB file 
+        molfile=open('structure_{}.pdb'.format(self.sequence),'w')
+        molfile.write(Chem.MolToPDBBlock(mol))
+        molfile.close()
         
     ############################################################################
     def blast_online(self):
