@@ -10,8 +10,8 @@ Year: 2020
 
 Third-party tools required:
 
-BioPython: https://biopython.org/wiki/Download - Ubuntu package: python-rdkit
-RDKit: https://github.com/rdkit/rdkit/releases - Ubuntu package: python-biopython
+BioPython: https://biopython.org/wiki/Download
+RDKit: https://github.com/rdkit/rdkit/releases
 """
 
 ########################################################################################

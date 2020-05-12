@@ -51,7 +51,7 @@ arguments:
                         the protein
  ```
  
-The main required argument is the mode, which is *sequence* or *structure* depending on the required analysis. If *sequence* mode is selected, an amino acid string should be provided. If *structure* mode is selected, various arguments should be provided. These include the path to the PDB file having the peptide alone or in complex with a protein, the chain ID of the peptide in the structure, the conformation of the peptide (by default is *linear*, or can be *cyclic*), and a contact threshold defined to count the interactions of the peptide with the protein chains (by default is *4.0*).
+The main required argument is the mode, which is *sequence* or *structure* depending on the analysis. If *sequence* mode is selected, an amino acid string should be provided. If *structure* mode is selected, various arguments should be provided. These include the path to the PDB file having the peptide alone or in complex with a protein, the chain ID of the peptide in the structure, the conformation of the peptide (by default is *linear*, or can be *cyclic*), and a contact threshold defined to count the interactions of the peptide with the protein chains (by default is *4.0*).
 
 ## User examples
 
@@ -77,7 +77,7 @@ Crippen LogP: -7.4280300000000254
 0 synthesis rules failed from 5
 ```
 
-In addition, a file named `structure_[sequence].sdf` will contain the peptide structure predicted by the conformer option in RDKit. These can be converted to a PDB file using OpenBabel to allow the correct numeration and order of the amino acids in the structure file.
+In addition, a file named `structure_[sequence].pdb` will contain the peptide structure predicted by the conformer option in RDKit, which will have the correct numeration and order of the amino acids based on the input sequence.
 
 
 ### Calculate structural information of a protein-peptide complex
@@ -128,7 +128,7 @@ P18 interacts with residue L70 from chain A
 
 ### Specialized tutorial for developers
 
-In case the user want to explore in detail the functions and applications using massive datasets, a Jupyter notebook is provided to run a set of operations with PepFun modules. *To run successfully the example please verify that the conda environment was created successfully.*
+In case the user want to explore in detail the functions and applications using massive datasets, a Jupyter notebook is provided to run a set of operations with PepFun modules. *To run the example please verify that the conda environment was created successfully.*
 
 ## Support
 
