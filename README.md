@@ -94,7 +94,7 @@ The total number of contacts are: 181
 The total number of hydrogen bonds are: 25
 ```
 
-In addition, we report the details of the hydrogen bonds detected between the peptide and the protein, and a plot of the interactions based on the selected conformation: linear or cyclic. The file name is `plot_hbs_NPVVHFFKNIVTPRTPPPSQ.png`
+In addition, we report the details of the hydrogen bonds detected between the peptide and the protein, and a plot of the interactions based on the selected conformation: linear or cyclic. The file name is `plot_hbs_[sequence].png`
 
 ```
 These are the hydrogen bonds detected:
