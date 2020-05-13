@@ -31,7 +31,7 @@ After entering the virtual environment, we can install the igraph module for pyt
 
 PepFun can be called as a module into another script to use their functionalities and combine the output with other tools. Examples of this mode are provided in the *test.py* script. However, the script by itself can be called to run some basic sequence- and structure-based analysis with peptides using the following syntax:
 
-`peptide_functions.py [-h] -m MODE [-s PEP_SEQ] [-p PEP_STR]
+`pepfun.py [-h] -m MODE [-s PEP_SEQ] [-p PEP_STR]
                             [-c PEP_CHAIN] [-b PEP_CONFORMATION]
                             [-t CONTACT_THRESHOLD]`
                                        
@@ -59,9 +59,9 @@ The main required argument is the mode, which is *sequence* or *structure* depen
 
 As an example to run the script as an user, we can calculate a set of properties. For that purpose, the script can be called as:
 
-`python peptide_functions.py -m sequence -s GYTRTEGSDF`
+`python pepfun.py -m sequence -s GYTRTEGSDF`
 
-The output is a file with the name `sequence\_analysis\_[sequence].txt`, where multiple properties for the required sequence are reported. An example of this is:
+The output is a file with the name `sequence_analysis_[sequence].txt`, where multiple properties for the required sequence are reported. An example of this is:
 
 ```
 The main peptide sequence is: GYTRTEGSDF
@@ -84,9 +84,9 @@ In addition, a file named `structure_[sequence].pdb` will contain the peptide st
 
 For the second case, we can call the script to obtain some information of a structure containing a peptide alone or in complex with a protein. This is an example using a structure provided in the auxiliar folder of the code:
 
-`python peptide_functions.py -m structure -p auxiliar/example_structure.pdb -c C -b linear -t 4.0`
+`python pepfun.py -m structure -p auxiliar/example_structure.pdb -c C -b linear -t 4.0`
 
-Here we are analyzing a peptide bound to the MHC class II protein, which chain ID is C and has a linear bound conformation. To count the number of contacts, we selected as threshold a value of 4.0. After running the script, we obtain the file `structure\_analysis\_[sequence].txt` with the report of some interaction observables:
+Here we are analyzing a peptide bound to the MHC class II protein, which chain ID is C and has a linear bound conformation. To count the number of contacts, we selected as threshold a value of 4.0. After running the script, we obtain the file `structure_analysis_[sequence].txt` with the report of some interaction observables:
 
 ```
 Peptide sequence based on the PDB file is: NPVVHFFKNIVTPRTPPPSQ
@@ -94,7 +94,7 @@ The total number of contacts are: 181
 The total number of hydrogen bonds are: 25
 ```
 
-In addition, we report the details of the hydrogen bonds detected between the peptide and the protein, and a plot of the interactions based on the selected conformation: linear or cyclic.
+In addition, we report the details of the hydrogen bonds detected between the peptide and the protein, and a plot of the interactions based on the selected conformation: linear or cyclic. The file name is `plot_hbs_NPVVHFFKNIVTPRTPPPSQ.png`
 
 ```
 These are the hydrogen bonds detected:

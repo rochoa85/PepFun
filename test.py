@@ -25,7 +25,7 @@ __email__ = "rodrigo.ochoa@udea.edu.co"
 # Import PepFun functions
 ########################################################################################
 
-from peptide_functions import *
+from pepfun import *
 
 ########################################################################################
 # Main File

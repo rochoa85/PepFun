@@ -12,6 +12,8 @@ Third-party tools required:
 
 BioPython: https://biopython.org/wiki/Download
 RDKit: https://github.com/rdkit/rdkit/releases
+
+NOTE: This can be installed using Conda as explained in the README.md file
 """
 
 ########################################################################################
@@ -34,7 +36,6 @@ import itertools
 import subprocess
 import argparse
 import re
-import os
 import numpy as np
 from random import randint
 from igraph import *
@@ -588,7 +589,6 @@ class peptide_sequence:
         
         record = SeqIO.read("{}.fasta".format(self.sequence), format="fasta")
         result_handle = NCBIWWW.qblast("blastp", "nr", record.format("fasta"),word_size=2, expect=20000.0, matrix_name="PAM30", gapcosts="9 1", format_object="Alignment")
-        os.system("rm {}.fasta".format(self.sequence))
         b_record = NCBIXML.read(result_handle)
         
         # Parse the results
@@ -924,7 +924,7 @@ class peptide_structure:
 if __name__ == '__main__':
     
     # Script arguments
-    parser = argparse.ArgumentParser(description='Pepfun: bioinformatics and cheminformatics protocols for peptide-related computational analysis')
+    parser = argparse.ArgumentParser(description='PepFun: open source protocols for peptide-related computational analysis')
     parser.add_argument('-m', dest='mode', action='store', required=True,
                         help='Choose a mode to run the script from two options: 1) sequence, 2) structure.') 
     parser.add_argument('-s', dest='pep_seq', action='store',
