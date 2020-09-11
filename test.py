@@ -40,6 +40,7 @@ if __name__ == '__main__':
     sequence="KMGRLFR"
     pdb_file="auxiliar/example_structure.pdb"
     chain="C"
+    dssp_route="auxiliar/mkdssp"
     pep_conformation="linear"
     contact_threshold=4.0
     
@@ -89,10 +90,10 @@ if __name__ == '__main__':
     pepStr=peptide_structure(pdb_file,chain)
     print("Peptide sequence based on the PDB file is: {}".format(pepStr.sequence))
     
-    pepStr.get_secondary_structure()
+    pepStr.get_secondary_structure(dssp_route)
     print("The predicted secondary structure is: {}".format(pepStr.total_dssp))
     
-    pepStr.get_hydrogen_bonds()
+    pepStr.get_hydrogen_bonds(dssp_route)
     pepStr.plot_hydrogen_bonds(pep_conformation)
     pepStr.get_heavy_atom_contacts(contact_threshold)
     

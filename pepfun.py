@@ -13,7 +13,12 @@ Third-party tools required:
 BioPython: https://biopython.org/wiki/Download
 RDKit: https://github.com/rdkit/rdkit/releases
 
-NOTE: This can be installed using Conda as explained in the README.md file
+NOTES:
+1. The package can be installed using Conda as explained in the README.md file
+2. If the script is called as a module from a different folder, the path can be added using the following commands:
+    import sys
+    sys.path.append('<PATH-TO-PEPFUN>')
+3. The package was build under a Unix environment, but it can be used under any other OS based on the provided paths
 """
 
 ########################################################################################
@@ -658,10 +663,13 @@ class peptide_structure:
         
     ############################################################################
     
-    def get_secondary_structure(self):
+    def get_secondary_structure(self,dssp_route):
         """
         Function to calculate the secondary structure and the accessible surface area using the auxiliary program mkdssp
         NOTE: mkdssp can be downloaded from the website:
+        
+        Arguments:
+        dssp_route -- Route to the local mkdssp executable
         
         Return:
         The dictionary positions will store the calculated data of dssp and the asa values
@@ -675,7 +683,7 @@ class peptide_structure:
         """
         
         model=self.reference[0]
-        dssp = DSSP(model,self.pdb_file,dssp='auxiliar/mkdssp')
+        dssp = DSSP(model,self.pdb_file,dssp=dssp_route)
         self.total_dssp=""
         
         # Loop over the keys from the dssp response to store ss and asa values
@@ -688,9 +696,12 @@ class peptide_structure:
     
     ############################################################################
     
-    def get_hydrogen_bonds(self):
+    def get_hydrogen_bonds(self,dssp_route):
         """
         Function to calculate hydrogen bonds with the other chains
+        
+        Arguments:
+        dssp_route -- Route to the local mkdssp executable
         
         Return:
         Dictionary containing the peptide amino acids and the protein amino acids forming hydrogen bonds
@@ -699,7 +710,7 @@ class peptide_structure:
         
         # Read the protein structure
         model=self.reference[0]
-        dssp = DSSP(model,self.pdb_file,dssp='auxiliar/mkdssp')
+        dssp = DSSP(model,self.pdb_file,dssp=dssp_route)
         self.total_dssp=""
         
         # Loop over the keys from the dssp response to store ss and asa values
@@ -935,6 +946,8 @@ if __name__ == '__main__':
                         help='Chain of the peptide in the structure')
     parser.add_argument('-b', dest='pep_conformation', action='store',default="linear",
                         help='Conformation of the peptide in the structure that will be used to plot hydrogen bonds')
+    parser.add_argument('-d', dest='dssp_route', action='store',
+                        help='Route where the mkdssp program is located')
     parser.add_argument('-t', dest='contact_threshold', action='store',default=4.0,
                         help='Threshold to count contacts between the peptide and the protein')
     # Pending add more
@@ -982,6 +995,14 @@ if __name__ == '__main__':
     
     # Basic analysis using as input the structure of a peptid in complex with a protein
     if mode=="structure":
+        
+        # Check the route to the dssp program
+        if args.dssp_route:
+            dssp_route=args.dssp_route
+        else:
+            print("The path to the dssp local program should be provided. Use the option -d for that purpose")
+            exit()
+        
         if args.pep_str and args.pep_chain :
             pdb_file=args.pep_str
             chain=args.pep_chain
@@ -993,8 +1014,8 @@ if __name__ == '__main__':
     
         print("### 1. Analysis of secondary structure and interactions based on the peptide structure ... ###")
         pepStr=peptide_structure(pdb_file,chain)
-        pepStr.get_secondary_structure()
-        pepStr.get_hydrogen_bonds()
+        pepStr.get_secondary_structure(dssp_route)
+        pepStr.get_hydrogen_bonds(dssp_route)
         pepStr.get_heavy_atom_contacts(contact_threshold)
     
         structure_report=open("structure_analysis_{}.txt".format(pepStr.sequence),"w")

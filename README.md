@@ -27,13 +27,21 @@ After entering the virtual environment, we can install the igraph module for pyt
 
 `pip install python-igraph`
 
+**NOTES:**
+1. If the script is called as a module from a different folder, the path can be added using the following commands:
+```
+import sys
+sys.path.append('<PATH-TO-PEPFUN>')
+```
+2. The package was build under a Unix environment, but it can be used under any other OS based on the provided paths
+
 ## How to run the script
 
 PepFun can be called as a module into another script to use their functionalities and combine the output with other tools. Examples of this mode are provided in the *test.py* script. However, the script by itself can be called to run some basic sequence- and structure-based analysis with peptides using the following syntax:
 
 `pepfun.py [-h] -m MODE [-s PEP_SEQ] [-p PEP_STR]
                             [-c PEP_CHAIN] [-b PEP_CONFORMATION]
-                            [-t CONTACT_THRESHOLD]`
+                            [-d DSSP_ROUTE] [-t CONTACT_THRESHOLD]`
                                        
 where the arguments are:
 
@@ -47,6 +55,7 @@ arguments:
   -c PEP_CHAIN          Chain of the peptide in the structure
   -b PEP_CONFORMATION   Conformation of the peptide in the structure that will
                         be used to plot hydrogen bonds
+  -d DSSP_ROUTE         Route where the mkdssp program is located
   -t CONTACT_THRESHOLD  Threshold to count contacts between the peptide and
                         the protein
  ```
@@ -84,7 +93,7 @@ In addition, a file named `structure_[sequence].pdb` will contain the peptide st
 
 For the second case, we can call the script to obtain some information of a structure containing a peptide alone or in complex with a protein. This is an example using a structure provided in the auxiliar folder of the code:
 
-`python pepfun.py -m structure -p auxiliar/example_structure.pdb -c C -b linear -t 4.0`
+`python pepfun.py -m structure -p auxiliar/example_structure.pdb -c C -b linear -t 4.0 -d auxiliar/mkdssp`
 
 Here we are analyzing a peptide bound to the MHC class II protein, which chain ID is C and has a linear bound conformation. To count the number of contacts, we selected as threshold a value of 4.0. After running the script, we obtain the file `structure_analysis_[sequence].txt` with the report of some interaction observables:
 
