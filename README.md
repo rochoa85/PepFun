@@ -15,7 +15,7 @@ PepFun is a compilation of bioinformatics and chemoinformatics functionalities t
 - BioPython: https://biopython.org/wiki/Download
 - RDKit: https://github.com/rdkit/rdkit/releases
 
-To allow the execution of PepFun with python3 and the required dependencies, the best option is to generate a conda virtual environment. For that purpose, the following command can be used:
+To allow the execution of PepFun with python3 and the required dependencies, the best option is to generate a conda virtual environment. Aguide to install Conda is available here: https://docs.conda.io/projects/conda/en/latest/user-guide/install/. After the installation, the virtual environment required for PepFun can be created using the following command:
 
 `conda create -c rdkit -n pepfun-env rdkit biopython matplotlib scipy pip pycairo nb_conda_kernels`
 
@@ -33,7 +33,7 @@ After entering the virtual environment, we can install the igraph module for pyt
 import sys
 sys.path.append('<PATH-TO-PEPFUN>')
 ```
-2. The package was build under a Unix environment, but it can be used under any other OS based on the provided paths
+2. The package was build under a Unix environment, but it can be used under any other OS based on the provided paths.
 
 ## How to run the script
 
@@ -70,6 +70,8 @@ As an example to run the script as an user, we can calculate a set of properties
 
 `python pepfun.py -m sequence -s GYTRTEGSDF`
 
+**NOTE: Remember to activate first the conda virtual environment as explained previously.**
+
 The output is a file with the name `sequence_analysis_[sequence].txt`, where multiple properties for the required sequence are reported. An example of this is:
 
 ```
@@ -103,7 +105,7 @@ The total number of contacts are: 181
 The total number of hydrogen bonds are: 25
 ```
 
-In addition, we report the details of the hydrogen bonds detected between the peptide and the protein, and a plot of the interactions based on the selected conformation: linear or cyclic. The file name is `plot_hbs_[sequence].png`
+In addition, we report the details of the hydrogen bonds detected between the peptide and the protein, and a plot of the interactions based on the selected conformation: linear or cyclic. The file name is `plot_hbs_[sequence].png`.
 
 ```
 These are the hydrogen bonds detected:
@@ -141,5 +143,5 @@ In case the user want to explore in detail the functions and applications using 
 
 ## Support
 
-In case the protocol is useful for other research projects and require some advice, please contact us to the email: rodrigo.ochoa@udea.edu.co
+In case the protocol is useful for other research projects and require some advice, please contact us to the email: rodrigo.ochoa@udea.edu.co.
 
