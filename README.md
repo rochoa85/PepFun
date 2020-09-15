@@ -1,6 +1,6 @@
 # PepFun project
 
-## Package with bioinformatics and cheminformatics protocols for peptide analysis
+## Bioinformatics and cheminformatics protocols for peptide analysis
 
 * From publication "PepFun: open source protocols for peptide-related computational analysis"
 * Journal of Cheminformatics, 2020
