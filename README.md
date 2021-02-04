@@ -3,7 +3,7 @@
 ## Bioinformatics and cheminformatics protocols for peptide analysis
 
 * From publication "PepFun: open source protocols for peptide-related computational analysis"
-* Journal of Cheminformatics, 2020
+* Molecules, 2021
 * Authors: Rodrigo Ochoa, Pilar Cossio
 
 ## Purpose
@@ -23,21 +23,23 @@ To activate the environment you can use the command:
 
 `source activate pepfun-env`
 
-After entering the virtual environment, we can install the igraph module for python3 using pip:
+After entering the virtual environment, we can install the igraph module for python3.6 using pip:
 
-`pip install python-igraph`
+`python3.6 -m pip install python-igraph`
 
 **NOTES:**
-1. If the script is called as a module from a different folder, the path can be added using the following commands:
+1. If the script is called as a module from a different folder, the path where the pepfun.py script is can be added using the following commands:
 ```
 import sys
 sys.path.append('<PATH-TO-PEPFUN>')
 ```
 2. The package was build under a Unix environment, but it can be used under any other OS based on the provided paths.
 
+3. To run the Jupyter tutorial, please verify that Jupyter Notebook is installed in your environment.
+
 ## How to run the script
 
-PepFun can be called as a module into another script to use their functionalities and combine the output with other tools. Examples of this mode are provided in the *test.py* script. However, the script by itself can be called to run some basic sequence- and structure-based analysis with peptides using the following syntax:
+PepFun can be called as a module into another script to use its functionalities and combine the output with other tools. The script by itself can be called to run some basic sequence- and structure-based analysis with peptides using the following syntax:
 
 `pepfun.py [-h] -m MODE [-s PEP_SEQ] [-p PEP_STR]
                             [-c PEP_CHAIN] [-b PEP_CONFORMATION]
@@ -54,13 +56,19 @@ arguments:
   -p PEP_STR            Structure that will be used for the analysis
   -c PEP_CHAIN          Chain of the peptide in the structure
   -b PEP_CONFORMATION   Conformation of the peptide in the structure that will
-                        be used to plot hydrogen bonds
-  -d DSSP_ROUTE         Route where the mkdssp program is located
-  -t CONTACT_THRESHOLD  Threshold to count contacts between the peptide and
+                        be used to plot hydrogen bonds. This can be infered from the PDB file. Options: linear, cyclic
+  -d DSSP_ROUTE         Route where the mkdssp program is located. By default it is located in the auxiliar folder
+  -t CONTACT_THRESHOLD  Threshold (in angstroms) to count contacts between the peptide and
                         the protein
  ```
  
-The main required argument is the mode, which is *sequence* or *structure* depending on the analysis. If *sequence* mode is selected, an amino acid string should be provided. If *structure* mode is selected, various arguments should be provided. These include the path to the PDB file having the peptide alone or in complex with a protein, the chain ID of the peptide in the structure, the conformation of the peptide (by default is *linear*, or can be *cyclic*), and a contact threshold defined to count the interactions of the peptide with the protein chains (by default is *4.0*).
+The main required argument is the mode, which is *sequence* or *structure* depending on the analysis. If *sequence* mode is selected, an amino acid string should be provided. If *structure* mode is selected, various arguments should be provided. These include the path to the PDB file having the peptide alone or in complex with a protein, the chain ID of the peptide in the structure, the conformation of the peptide (by default is *linear*, or can be *cyclic*), and a contact threshold defined to count the interactions of the peptide with the protein chains (by default is *4.0* (angstroms)).
+
+To test that PepFun is working, the following command can be run to calculate some sequence and structural data from an example peptide:
+
+`python test.py`
+
+The output files can be checked to confirm that PepFun is ready to go.
 
 ## User examples
 
@@ -97,7 +105,7 @@ For the second case, we can call the script to obtain some information of a stru
 
 `python pepfun.py -m structure -p auxiliar/example_structure.pdb -c C -b linear -t 4.0 -d auxiliar/mkdssp`
 
-Here we are analyzing a peptide bound to the MHC class II protein, which chain ID is C and has a linear bound conformation. To count the number of contacts, we selected as threshold a value of 4.0. After running the script, we obtain the file `structure_analysis_[sequence].txt` with the report of some interaction observables:
+Here we are analyzing a peptide bound to the MHC class II protein, which chain ID is C and has a linear bound conformation. To count the number of contacts, we selected as threshold a value of 4.0 (angstroms). After running the script, we obtain the file `structure_analysis_[sequence].txt` with the report of some interaction observables:
 
 ```
 Peptide sequence based on the PDB file is: NPVVHFFKNIVTPRTPPPSQ
@@ -136,10 +144,13 @@ P17 interacts with residue L70 from chain A
 P18 interacts with residue L70 from chain A
 
 ```
+### Generation of Libraries 
+
+To generate different types of libraries, it is required to call a function from pepfun.py. It means that calling pepfun.py as a stand-alone tool is not suitable for this purpose. An example of how to generate a library is available in the Jupyter Notebook tutorial.
 
 ### Specialized tutorial for developers
 
-In case the user want to explore in detail the functions and applications using massive datasets, a Jupyter notebook is provided to run a set of operations with PepFun modules. *To run the example please verify that the conda environment was created successfully.*
+In case the user want to explore in detail the functions and applications using massive datasets, a Jupyter Notebook is provided to run a set of operations with PepFun modules. *To run the example please verify that the conda environment was created successfully.*
 
 ## Support
 
