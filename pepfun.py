@@ -945,11 +945,11 @@ if __name__ == '__main__':
     parser.add_argument('-c', dest='pep_chain', action='store',
                         help='Chain of the peptide in the structure')
     parser.add_argument('-b', dest='pep_conformation', action='store',default="linear",
-                        help='Conformation of the peptide in the structure that will be used to plot hydrogen bonds')
+                        help='Conformation of the peptide in the structure that will be used to plot hydrogen bonds. This can be infered from the PDB file. Options: linear, cyclic')
     parser.add_argument('-d', dest='dssp_route', action='store',
-                        help='Route where the mkdssp program is located')
+                        help='Route where the mkdssp program is located. By default it is located in the auxiliar folder')
     parser.add_argument('-t', dest='contact_threshold', action='store',default=4.0,
-                        help='Threshold to count contacts between the peptide and the protein')
+                        help='Threshold (in angstroms) to count contacts between the peptide and the protein')
     # Pending add more
     args = parser.parse_args()
     
