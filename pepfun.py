@@ -4,9 +4,9 @@
 PepFun: open source protocols for peptide-related computational analysis
 
 From publication "PepFun: open source protocols for peptide-related computational analysis"
-Journal of Cheminformatics 
+Molecules
 Authors: Rodrigo Ochoa, Pilar Cossio
-Year: 2020
+Year: 2021
 
 Third-party tools required:
 
