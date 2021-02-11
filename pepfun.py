@@ -10,7 +10,7 @@ Year: 2021
 
 Third-party tools required:
 
-BioPython: https://biopython.org/wiki/Download
+BioPython: https://biopython.org/wiki/Download (recommended version 1.76)
 RDKit: https://github.com/rdkit/rdkit/releases
 
 NOTES:
