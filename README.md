@@ -12,7 +12,7 @@ PepFun is a compilation of bioinformatics and chemoinformatics functionalities t
 
 ## Third-party tools required:
 
-- BioPython: https://biopython.org/wiki/Download
+- BioPython: https://biopython.org/wiki/Download (recommended version 1.76)
 - RDKit: https://github.com/rdkit/rdkit/releases
 
 To allow the execution of PepFun with python3 and the required dependencies, the best option is to generate a conda virtual environment. A guide to install Conda is available here: https://docs.conda.io/projects/conda/en/latest/user-guide/install/. After the installation, the virtual environment required for PepFun can be created using the following command:
