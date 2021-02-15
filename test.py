@@ -81,6 +81,8 @@ if __name__ == '__main__':
     pep.synthesis_rules()
     print("{} synthesis rules failed from 5".format(pep.synthesis_rules_failed))
     
+    print("SEQUENCE TESTS PASSED OK")
+    
     ############################################################
     # Test peptide structure functions
     ############################################################
@@ -102,6 +104,8 @@ if __name__ == '__main__':
     print("The following are the details per amino acid in the peptide:")
     print(pepStr.positions)
     
+    print("STRUCTURE TESTS PASSED OK")
+    
     ############################################################
     # Test additional functions
     ############################################################
@@ -119,3 +123,5 @@ if __name__ == '__main__':
     library_report=open("auxiliar/library_generated.txt","w")
     for pep in list_peptides: library_report.write("{}\n".format(pep))
     library_report.close()
+    
+    print("ADDITIONAL TESTS PASSED OK")
