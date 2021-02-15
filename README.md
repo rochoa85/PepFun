@@ -64,7 +64,7 @@ arguments:
  
 The main argument required is the mode, which is *sequence* or *structure* depending on the analysis. If the *sequence* mode is selected, an amino acid string should be provided. The *structure* mode is selected, various arguments should be provided. These include the path to the PDB file having the peptide alone or in complex with a protein, the chain ID of the peptide in the structure, the conformation of the peptide (by default it is *linear*, or can be *cyclic*), and a contact threshold to count the interactions of the peptide with the protein chains (by default is *4.0* (angstroms)).
 
-PepFun can be also ran as a module within another script to use its functionalities and combine the output with other tools. See the Jupyter Tutorial for examples. 
+PepFun can be also ran as a module within another script to use its functionalities and combine the output with other tools. See the Jupyter Tutorial for examples (tutorial_PepFun.ipynb). 
 
 To test that PepFun is working, the following command can be run to calculate some sequence and structural data from an example peptide:
 
@@ -76,18 +76,18 @@ The output files can be checked to confirm that PepFun is ready to go.
 
 ### Calculate sequence properties
 
-As an example to run the script as an user, we can calculate a set of properties. For that purpose, the script can be called as:
+As an example to run the script, we can calculate a set of properties for a peptide sequence. For that purpose, the script can be called as:
 
 `python pepfun.py -m sequence -s GYTRTEGSDF`
 
 **NOTE: Remember to activate first the conda virtual environment as explained previously.**
 
-The output is a file with the name `sequence_analysis_[sequence].txt`, where multiple properties for the required sequence are reported. An example of this is:
+The output is a file with the name `sequence_analysis_[sequence].txt`, where multiple properties for the sequence are reported. An example of this is:
 
 ```
 The main peptide sequence is: GYTRTEGSDF
 Net charge at pH 7: -1.0008535231234645
-Molecular weight: 1132.152
+Molecular weight: 1132.152 (g/mol)
 Average Hydrophobicity: -2.04
 Isoelectric Point: 4.37030029296875
 Instability index: 3.740000000000001
@@ -103,11 +103,11 @@ In addition, a file named `structure_[sequence].pdb` will contain the peptide st
 
 ### Calculate structural information of a protein-peptide complex
 
-For the second case, we can call the script to obtain some information of a structure containing a peptide alone or in complex with a protein. This is an example using a structure provided in the auxiliar folder of the code:
+We can use PepFun to obtain some information about a structure containing a peptide alone or in complex with a protein. This is an example for using a structure provided in the auxiliar folder of the code:
 
 `python pepfun.py -m structure -p auxiliar/example_structure.pdb -c C -b linear -t 4.0 -d auxiliar/mkdssp`
 
-Here we are analyzing a peptide bound to the MHC class II protein, which chain ID is C and has a linear bound conformation. To count the number of contacts, we selected as threshold a value of 4.0 (angstroms). After running the script, we obtain the file `structure_analysis_[sequence].txt` with the report of some interaction observables:
+Here, we are analyzing a peptide bound to the MHC class II protein, which chain ID is C and has a linear bound conformation. To count the number of contacts, we selected as threshold a value of 4.0 (angstroms). After running the script, we obtain the file `structure_analysis_[sequence].txt` with the report of some interaction observables:
 
 ```
 Peptide sequence based on the PDB file is: NPVVHFFKNIVTPRTPPPSQ
@@ -148,13 +148,13 @@ P18 interacts with residue L70 from chain A
 ```
 ### Generation of Libraries 
 
-To generate different types of libraries, it is required to call a function from pepfun.py. It means that calling pepfun.py as a stand-alone tool is not suitable for this purpose. An example of how to generate a library is available in the Jupyter Notebook tutorial.
+To generate different types of peptide libraries, it is required to call a function from pepfun.py. This means that calling pepfun.py as a stand-alone tool is not suitable for this purpose. An example of how to generate a library is available in the Jupyter Notebook tutorial (tutorial_PepFun.ipynb).
 
 ### Specialized tutorial for developers
 
-In case the user want to explore in detail the functions and applications using massive datasets, a Jupyter Notebook is provided to run a set of operations with PepFun modules. *To run the example please verify that the conda environment was created successfully.*
+If the user wants to explore in detail the functions and applications using massive datasets, a Jupyter Notebook is provided to run a set of operations with PepFun modules. *To run the example please verify that the conda environment was created successfully.*
 
 ## Support
 
-In case the protocol is useful for other research projects and require some advice, please contact us to the email: rodrigo.ochoa@udea.edu.co.
+For support, please contact us to the email: rodrigo.ochoa@udea.edu.co. Please cite: "Ochoa & Cossio. PepFun: open source protocols for peptide-related computational analysis. Molecules, 2021." (to be published)
 
