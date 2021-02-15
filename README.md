@@ -15,7 +15,7 @@ PepFun is a compilation of bioinformatics and chemoinformatics functionalities t
 - BioPython: https://biopython.org/wiki/Download (recommended version 1.76)
 - RDKit: https://github.com/rdkit/rdkit/releases
 
-To allow the execution of PepFun with python3 and the required dependencies, the best option is to generate a conda virtual environment. A guide to install Conda is available here: https://docs.conda.io/projects/conda/en/latest/user-guide/install/. After the installation, the virtual environment required for PepFun can be created using the following command:
+To execute PepFun with python3 and the required dependencies, the best option is to generate a conda virtual environment. A guide to install Conda is available here: https://docs.conda.io/projects/conda/en/latest/user-guide/install/. After the installation, the virtual environment required for PepFun can be created using the following command:
 
 `conda create -c rdkit -n pepfun-env rdkit biopython matplotlib scipy pip pycairo nb_conda_kernels`
 
@@ -39,7 +39,7 @@ sys.path.append('<PATH-TO-PEPFUN>')
 
 ## How to run the script
 
-PepFun can be called as a module into another script to use its functionalities and combine the output with other tools. The script by itself can be called to run some basic sequence- and structure-based analysis with peptides using the following syntax:
+PepFun can be called to run some basic sequence- and structure-based analysis with peptides using the following syntax:
 
 `pepfun.py [-h] -m MODE [-s PEP_SEQ] [-p PEP_STR]
                             [-c PEP_CHAIN] [-b PEP_CONFORMATION]
@@ -62,7 +62,9 @@ arguments:
                         the protein
  ```
  
-The main required argument is the mode, which is *sequence* or *structure* depending on the analysis. If *sequence* mode is selected, an amino acid string should be provided. If *structure* mode is selected, various arguments should be provided. These include the path to the PDB file having the peptide alone or in complex with a protein, the chain ID of the peptide in the structure, the conformation of the peptide (by default is *linear*, or can be *cyclic*), and a contact threshold defined to count the interactions of the peptide with the protein chains (by default is *4.0* (angstroms)).
+The main argument required is the mode, which is *sequence* or *structure* depending on the analysis. If the *sequence* mode is selected, an amino acid string should be provided. The *structure* mode is selected, various arguments should be provided. These include the path to the PDB file having the peptide alone or in complex with a protein, the chain ID of the peptide in the structure, the conformation of the peptide (by default it is *linear*, or can be *cyclic*), and a contact threshold to count the interactions of the peptide with the protein chains (by default is *4.0* (angstroms)).
+
+PepFun can be also ran as a module within another script to use its functionalities and combine the output with other tools. See the Jupyter Tutorial for examples. 
 
 To test that PepFun is working, the following command can be run to calculate some sequence and structural data from an example peptide:
 
