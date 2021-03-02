@@ -41,6 +41,7 @@ import itertools
 import subprocess
 import argparse
 import re
+import os
 import numpy as np
 from random import randint
 from igraph import *
@@ -247,10 +248,6 @@ def frequencies_library(peptides):
         for pos,aa in enumerate(sequence):
             count_dict[pos+1][aa]+=1
     
-    # Print the dictionary
-    #for key in count_dict:
-    #    print key,count_dict[key]
-    
     # Return the dictionary
     return count_dict
 
@@ -276,8 +273,10 @@ class peptide_sequence:
         self.sequence=sequence
         self.pH=7
         self.solubility_rules_failed=0
+        self.set_sol_rules=[]
         self.length_peptide=len(self.sequence)
         self.synthesis_rules_failed=0
+        self.set_syn_rules=[]
         
         # Loop to create the SMILES
         connect_smiles='O'
@@ -492,20 +491,31 @@ class peptide_sequence:
         
         # This condition should change depending on the sequence length
         hydro_char_threshold=float(self.length_peptide)*0.45
-        if count_hydro_charged > hydro_char_threshold: self.solubility_rules_failed+=1
+        if count_hydro_charged > hydro_char_threshold:
+            self.solubility_rules_failed+=1
+            self.set_sol_rules.append(1)
+        else:
+            self.set_sol_rules.append(0)
         
         # Rule N2. Computed peptide charge
         charge_threshold=1
         self.compute_peptide_charges()
         if self.netCharge > 1:
             self.solubility_rules_failed+=1
+            self.set_sol_rules.append(1)
+        else:
+            self.set_sol_rules.append(0)
             
         # Rule N3. Glycine or Proline content in the sequence
         count_gly_pro=0
         for aa in self.sequence:
             if aa == "G" or aa=="P": count_gly_pro+=1
         # Check threshold
-        if count_gly_pro > 1: self.solubility_rules_failed+=1
+        if count_gly_pro > 1:
+            self.solubility_rules_failed+=1
+            self.set_sol_rules.append(1)
+        else:
+            self.set_sol_rules.append(0)
         
         # Rule N4. First or last amino acid charged
         count_charge=0
@@ -514,15 +524,23 @@ class peptide_sequence:
         if self.sequence[-1] in charged_residues:
             count_charge+=1
         # Check threshold
-        if count_charge > 0: self.solubility_rules_failed+=1
+        if count_charge > 0:
+            self.solubility_rules_failed+=1
+            self.set_sol_rules.append(1)
+        else:
+            self.set_sol_rules.append(0)
         
         # Rule N5. Any amino acid represent more than 25% of the total sequence
         prot_parameters=ProteinAnalysis(self.sequence)
         aa_content=prot_parameters.get_amino_acids_percent()
+        flag5=0
         for aa in aa_content:
             if aa_content[aa]>=0.3:
                 self.solubility_rules_failed+=1
+                self.set_sol_rules.append(1)
+                flag5=1
                 break
+        if flag5==0: self.set_sol_rules.append(0)
     
     ############################################################################
     def synthesis_rules(self):
@@ -537,6 +555,9 @@ class peptide_sequence:
         for motif in forbidden_motifs:
             if re.search(forbidden_motifs[motif],self.sequence):
                 self.synthesis_rules_failed+=1
+                self.set_syn_rules.append(1)
+            else:
+                self.set_syn_rules.append(0)
                 
         # test if there are charged residues every 5 amino acids
         charged_residues=['H','R','K','D','E']
@@ -547,13 +568,20 @@ class peptide_sequence:
                 counter_charged = 0
             if counter_charged >= 5:
                 self.synthesis_rules_failed+=1
+                self.set_syn_rules.append(1)
+            else:
+                self.set_syn_rules.append(0)
                 
         # Check if there are oxidation-sensitive amino acids
         aa_oxidation=['M','C','W']
+        flag5=0
         for aa in self.sequence:
             if aa in aa_oxidation:
                 self.synthesis_rules_failed+=1
+                self.set_syn_rules.append(1)
+                flag5=1
                 break
+        if flag5==0: self.set_syn_rules.append(0)
         
     ############################################################################
     def generate_conformer(self):
@@ -575,9 +603,27 @@ class peptide_sequence:
         AllChem.UFFOptimizeMolecule(mol)
         
         # Write PDB file 
-        molfile=open('structure_{}.pdb'.format(self.sequence),'w')
+        molfile=open('structure.pdb','w')
         molfile.write(Chem.MolToPDBBlock(mol))
         molfile.close()
+        
+        # Add Remarks
+        remarks=open('remarks.pdb','w')
+        remarks.write('REMARK    Conformer generated with RDKit\n')
+        remarks.write('REMARK    The conformer is created using a distance geometry approach.\n')
+        remarks.write('REMARK    The method is explained in the PepFun paper (Ochoa et. al. Molecules, 2021).\n')
+        remarks.close()
+        
+        # Concatenate final structure
+        with open("structure_{}.pdb".format(self.sequence), "w") as outfile:
+            for filename in ["remarks.pdb","structure.pdb"]:
+                with open(filename) as infile:
+                    contents = infile.read()
+                    outfile.write(contents)
+        
+        #Delete files
+        os.remove("remarks.pdb")
+        os.remove("structure.pdb")
         
     ############################################################################
     def blast_online(self):
@@ -974,8 +1020,38 @@ if __name__ == '__main__':
         pep.solubility_rules()
         pep.synthesis_rules()
         
+        # Rules
+        sol_rules={1:"Discard if the number of charged and/or of hydrophobic amino acids exceeds 45%",
+                   2:"Discard if the absolute total peptide charge at pH 7 is more than +1",
+                   3:"Discard if the number of glycine or proline is more than one in the sequence",
+                   4:"Discard if the first or the last amino acid is charged",
+                   5:"Discard if any amino acid represents more than 25% of the total sequence"}
+        
+        syn_rules={1:"Discard if 2 prolines are consecutive",
+                   2:"Discard if the motifs DG and DP are present in the sequence",
+                   3:"Discard if the sequences ends with N or Q residues",
+                   4:"Discard if there are charged residues every 5 amino acids",
+                   5:"Discard if there are oxidation-sensitive amino acids (M, C or W)"}
+        
+        # Check the specific solubility rules violated
+        rules_sol_violated=""
+        for i,rules in enumerate(pep.set_sol_rules):
+            if rules==1: rules_sol_violated+=str(i+1)+","
+        if rules_sol_violated: sol_violated=rules_sol_violated[:-1]
+        else: sol_violated="None"
+        
+        # Check the specific synthesis rules violated
+        rules_syn_violated=""
+        for i,rules in enumerate(pep.set_syn_rules):
+            if rules==1: rules_syn_violated+=str(i+1)+","
+        if rules_syn_violated: syn_violated=rules_syn_violated[:-1]
+        else: syn_violated="None"
+        
         sequence_report=open("sequence_analysis_{}.txt".format(sequence),"w")
+        sequence_report.write("###########################################\n")
         sequence_report.write("The main peptide sequence is: {}\n".format(pep.sequence))
+        sequence_report.write("###########################################\n")
+        sequence_report.write("\nCalculated properties:\n")
         sequence_report.write("Net charge at pH 7: {}\n".format(pep.netCharge))
         sequence_report.write("Molecular weight: {}\n".format(pep.mol_weight))
         sequence_report.write("Average Hydrophobicity: {}\n".format(pep.avg_hydro))
@@ -984,14 +1060,36 @@ if __name__ == '__main__':
         sequence_report.write("Number of hydrogen bond acceptors: {}\n".format(pep.num_hacceptors))
         sequence_report.write("Number of hydrogen bond donors: {}\n".format(pep.num_hdonors))
         sequence_report.write("Crippen LogP: {}\n".format(pep.mol_logp))
-        sequence_report.write("{} solubility rules failed from 5\n".format(pep.solubility_rules_failed))
-        sequence_report.write("{} synthesis rules failed from 5\n".format(pep.synthesis_rules_failed))
-        sequence_report.close()
+        sequence_report.write("{} solubility rules failed from 5. The rules violated are the number(s): {}. *For details of the rules see the last part of the report.\n".format(pep.solubility_rules_failed,sol_violated))
+        sequence_report.write("{} synthesis rules failed from 5. The rules violated are the number(s): {}. **For details of the rules see the last part of the report.\n".format(pep.synthesis_rules_failed,syn_violated))
+        
         
         print("### Done ###")
         print("### 2. Prediction of basic conformer ... ###")
         pep.generate_conformer()
         print("### Done ###")
+        
+        sequence_report.write("###########################################\n")
+        sequence_report.write("\nExplanation of the calculated parameters:\n")
+        sequence_report.write("- Net charge: average net charge based on pka values of each amino acid. By default a pH=7 is used.\n")
+        sequence_report.write("- Molecular weight: calculated in g/mol using the SMILES representation of the peptide.\n")
+        sequence_report.write("- Average Hydrophobicity: calculated by averaging the values of each amino acid hydrophobicity value from the Eisenberg scale.\n")
+        sequence_report.write("- Isoelectric point: obtained from the ProtParam package of the expasy server.\n")
+        sequence_report.write("- Instability Index: from ProtParam. It provides an estimate of the stability of your protein in a test tube. Values smaller than 40 is predicted as stable, a value above 40 predicts as unstable.\n")
+        sequence_report.write("- Number of hydrogen bond acceptors: calculated using the SMILES representation of the peptide.\n")
+        sequence_report.write("- Number of hydrogen bond donors: calculated using the SMILES representation of the peptide.\n")
+        sequence_report.write("- Crippen LogP: estimation of the octanol/water partition coefficient using the Ghose/Crippen approach available in the RDKit project.\n")
+        
+        sequence_report.write("###########################################\n")
+        sequence_report.write("\nAdditional information of the rules:\n")
+        sequence_report.write("NOTE: A set of empirical rules are provided. The higher the number of rules violated, the lower the probability to be solubilized or synthesized experimentally (https://bioserv.rpbs.univ-paris-diderot.fr/services/SolyPep/).\n")
+        sequence_report.write("\n*List of solubility rules violations:\n")
+        for key in sol_rules:
+            sequence_report.write("{}. {}\n".format(key,sol_rules[key]))
+        sequence_report.write("\n**List of synthesis rules violations:\n")
+        for key in syn_rules:
+            sequence_report.write("{}. {}\n".format(key,syn_rules[key]))
+        sequence_report.close()
     
     # Basic analysis using as input the structure of a peptid in complex with a protein
     if mode=="structure":
