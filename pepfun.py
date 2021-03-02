@@ -43,12 +43,12 @@ import argparse
 import re
 import os
 import numpy as np
+import pickle
 from random import randint
 from igraph import *
 
 # BioPython
 from Bio import pairwise2
-from Bio.SubsMat import MatrixInfo as matlist
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
 from Bio.PDB import *
 from Bio import SeqIO
@@ -287,7 +287,7 @@ class peptide_sequence:
         self.smiles=connect_smiles
     
     ############################################################################    
-    def align_position_matrix(self,peptide_to_match,matrix):
+    def align_position_matrix(self,peptide_to_match):
         """
         Align position by position a peptide of reference with another one
         
@@ -298,6 +298,8 @@ class peptide_sequence:
         Return:
         score -- A numerical value to rank the alignment
         """
+        with open('auxiliar/matrix.pickle', 'rb') as handle:
+            matrix = pickle.load(handle)
         self.score_matrix=0
         
         for i,p in enumerate(self.sequence):
@@ -331,7 +333,7 @@ class peptide_sequence:
         self.match=len(self.sequence)-self.dismatch
         
     ############################################################################
-    def similarity_pair(self,peptide1,peptide2,matrix):
+    def similarity_pair(self,peptide1,peptide2):
         """
         Function to calculate similarity between two peptide sequences
         
@@ -343,18 +345,21 @@ class peptide_sequence:
         Return:
         sim_val -- similarity based on the aligments between the peptides and themselves - Max value is 1
         """
+        with open('auxiliar/matrix.pickle', 'rb') as handle:
+            matrix = pickle.load(handle)
+            
         # Alignment between peptide1 and peptide2
         pep=peptide_sequence(peptide1)
-        pep.align_position_matrix(peptide2,matrix)
+        pep.align_position_matrix(peptide2)
         score1_2=pep.score_matrix
         
         # Alignment between peptide1 with itself
-        pep.align_position_matrix(peptide1,matrix)
+        pep.align_position_matrix(peptide1)
         score1_1=pep.score_matrix
         
         # Alignment between peptide2 with itself
         pep2=peptide_sequence(peptide2)
-        pep2.align_position_matrix(peptide2,matrix)
+        pep2.align_position_matrix(peptide2)
         score2_2=pep2.score_matrix
         
         # Calculate similarity value
