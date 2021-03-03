@@ -82,23 +82,59 @@ As an example to run the script, we can calculate a set of properties for a pept
 
 **NOTE: Remember to activate first the conda virtual environment as explained previously.**
 
-The output is a file with the name `sequence_analysis_[sequence].txt`, where multiple properties for the sequence are reported. An example of this is:
+The output is a file with the name `sequence_analysis_[sequence].txt`, where multiple properties for the sequence are reported. An example of this and the explanation of the parameters is:
 
 ```
+###########################################
 The main peptide sequence is: GYTRTEGSDF
+###########################################
+
+Calculated properties:
 Net charge at pH 7: -1.0008535231234645
-Molecular weight: 1132.152 (g/mol)
+Molecular weight: 1132.152
 Average Hydrophobicity: -2.04
 Isoelectric Point: 4.37030029296875
 Instability index: 3.740000000000001
 Number of hydrogen bond acceptors: 18
 Number of hydrogen bond donors: 20
 Crippen LogP: -7.4280300000000254
-1 solubility rules failed from 5
-0 synthesis rules failed from 5
+1 solubility rules failed from 5. The rules violated are the number(s): 3. *For details of the rules see the last part of the report.
+0 synthesis rules failed from 5. The rules violated are the number(s): None. **For details of the rules see the last part of the report.
+###########################################
+
+Explanation of the calculated parameters:
+- Net charge: average net charge based on pka values of each amino acid. By default a pH=7 is used.
+- Molecular weight: calculated in g/mol using the SMILES representation of the peptide.
+- Average Hydrophobicity: calculated by averaging the values of each amino acid hydrophobicity value from the Eisenberg scale.
+- Isoelectric point: obtained from the ProtParam package of the expasy server.
+- Instability Index: from ProtParam. It provides an estimate of the stability of your protein in a test tube. Values smaller than 40 is predict
+ed as stable, a value above 40 predicts as unstable.
+- Number of hydrogen bond acceptors: calculated using the SMILES representation of the peptide.
+- Number of hydrogen bond donors: calculated using the SMILES representation of the peptide.
+- Crippen LogP: estimation of the octanol/water partition coefficient using the Ghose/Crippen approach available in the RDKit project.
+###########################################
+
+Additional information of the rules:
+NOTE: A set of empirical rules are provided. The higher the number of rules violated, the lower the probability to be solubilized or synthesize
+d experimentally (https://bioserv.rpbs.univ-paris-diderot.fr/services/SolyPep/).
+
+*List of solubility rules violations:
+1. Discard if the number of charged and/or of hydrophobic amino acids exceeds 45%
+2. Discard if the absolute total peptide charge at pH 7 is more than +1
+3. Discard if the number of glycine or proline is more than one in the sequence
+4. Discard if the first or the last amino acid is charged
+5. Discard if any amino acid represents more than 25% of the total sequence
+
+**List of synthesis rules violations:
+1. Discard if 2 prolines are consecutive
+2. Discard if the motifs DG and DP are present in the sequence
+3. Discard if the sequences ends with N or Q residues
+4. Discard if there are charged residues every 5 amino acids
+5. Discard if there are oxidation-sensitive amino acids (M, C or W)
+
 ```
 
-In addition, a file named `structure_[sequence].pdb` will contain the peptide structure predicted by the conformer option in RDKit, which will have the correct numeration and order of the amino acids based on the input sequence.
+In addition, a file named `structure_[sequence].pdb` will contain the peptide structure predicted by the conformer option in RDKit (see main publication), which will have the correct numeration and order of the amino acids based on the input sequence.
 
 
 ### Calculate structural information of a protein-peptide complex
