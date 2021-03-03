@@ -107,7 +107,7 @@ Explanation of the calculated parameters:
 - Molecular weight: calculated in g/mol using the SMILES representation of the peptide.
 - Average Hydrophobicity: calculated by averaging the values of each amino acid hydrophobicity value from the Eisenberg scale.
 - Isoelectric point: obtained from the ProtParam package of the expasy server.
-- Instability Index: from ProtParam. It provides an estimate of the stability of your protein in a test tube. Values smaller than 40 is predict
+- Instability Index: from ProtParam. It provides an estimate of the stability of the peptide in a test tube. Values smaller than 40 is predict
 ed as stable, a value above 40 predicts as unstable.
 - Number of hydrogen bond acceptors: calculated using the SMILES representation of the peptide.
 - Number of hydrogen bond donors: calculated using the SMILES representation of the peptide.

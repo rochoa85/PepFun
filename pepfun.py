@@ -1080,7 +1080,7 @@ if __name__ == '__main__':
         sequence_report.write("- Molecular weight: calculated in g/mol using the SMILES representation of the peptide.\n")
         sequence_report.write("- Average Hydrophobicity: calculated by averaging the values of each amino acid hydrophobicity value from the Eisenberg scale.\n")
         sequence_report.write("- Isoelectric point: obtained from the ProtParam package of the expasy server.\n")
-        sequence_report.write("- Instability Index: from ProtParam. It provides an estimate of the stability of your protein in a test tube. Values smaller than 40 is predicted as stable, a value above 40 predicts as unstable.\n")
+        sequence_report.write("- Instability Index: from ProtParam. It provides an estimate of the stability of the peptide in a test tube. Values smaller than 40 is predicted as stable, a value above 40 predicts as unstable.\n")
         sequence_report.write("- Number of hydrogen bond acceptors: calculated using the SMILES representation of the peptide.\n")
         sequence_report.write("- Number of hydrogen bond donors: calculated using the SMILES representation of the peptide.\n")
         sequence_report.write("- Crippen LogP: estimation of the octanol/water partition coefficient using the Ghose/Crippen approach available in the RDKit project.\n")
