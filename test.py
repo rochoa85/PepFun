@@ -61,15 +61,14 @@ if __name__ == '__main__':
     pep.calculate_properties_from_sequence()
     print("Average Hydrophobicity: {}".format(pep.avg_hydro))
     print("Isoelectric Point: {}".format(pep.isoelectric_point))
-    
-    matrix=matlist.structure
-    pep.align_position_matrix("KAGRSFR",matrix)
+            
+    pep.align_position_matrix("KAGRSFR")
     print("Alignment score by position with peptide KAGRSFR is: {}".format(pep.score_matrix))
     
     pep.align_position_local("KAGRSFR")
     print("The number of dismatches with peptide KAGRSFR are: {}".format(pep.dismatch))
     
-    similarity=pep.similarity_pair("KMGRLFR","KAGRSFR",matrix)
+    similarity=pep.similarity_pair("KMGRLFR","KAGRSFR")
     print("The similarity between peptides KMGRLFR and KAGRSFR is: {}".format(similarity))
     
     pep.similar_smiles("KAGRSFR")
