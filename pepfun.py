@@ -996,7 +996,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', dest='pep_chain', action='store',
                         help='Chain of the peptide in the structure')
     parser.add_argument('-b', dest='pep_conformation', action='store',default="linear",
-                        help='Conformation of the peptide in the structure that will be used to plot hydrogen bonds. This can be infered from the PDB file. Options: linear, cyclic')
+                        help='Conformation of the peptide. Options: linear (default), cyclic')
     parser.add_argument('-d', dest='dssp_route', action='store',
                         help='Route where the mkdssp program is located. By default it is located in the auxiliar folder')
     parser.add_argument('-t', dest='contact_threshold', action='store',default=4.0,
@@ -1086,8 +1086,7 @@ if __name__ == '__main__':
         sequence_report.write("- Crippen LogP: estimation of the octanol/water partition coefficient using the Ghose/Crippen approach available in the RDKit project.\n")
         
         sequence_report.write("###########################################\n")
-        sequence_report.write("\nAdditional information of the rules:\n")
-        sequence_report.write("NOTE: A set of empirical rules are provided. The higher the number of rules violated, the lower the probability to be solubilized or synthesized experimentally (https://bioserv.rpbs.univ-paris-diderot.fr/services/SolyPep/).\n")
+        sequence_report.write("\nThe last two results are the number of solubility and synthesis rules violated. The higher the number of rules violated, the lower the probability to be solubilized or synthesized experimentally (https://bioserv.rpbs.univ-paris-diderot.fr/services/SolyPep/).\n")
         sequence_report.write("\n*List of solubility rules violations:\n")
         for key in sol_rules:
             sequence_report.write("{}. {}\n".format(key,sol_rules[key]))
