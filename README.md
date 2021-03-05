@@ -8,7 +8,7 @@
 
 ## Purpose
 
-PepFun is a compilation of bioinformatics and chemoinformatics functionalities that are easy to implement and personalize for studying peptides at different levels: sequence, structure and their interactions. The package has been created under the python scripting language based on built-in functions and methods available in the open source projects BioPython and RDKit. Some of the prediction and characterization tools were tested with two datasets of peptide binders of known protein systems, the MHC class II and the Granzyme B protease.
+PepFun is a compilation of bioinformatics and chemoinformatics functionalities that are easy to implement and personalize for studying peptides at different levels: sequence, structure and large datasets. The package has been created under the python scripting language based on built-in functions and methods available in the open source projects BioPython and RDKit. Some of the prediction and characterization tools were tested with two datasets of peptide binders of known protein systems, the MHC class II and the Granzyme B protease.
 
 ## Third-party tools required:
 
@@ -23,7 +23,7 @@ To activate the environment you can use the command:
 
 `source activate pepfun-env`
 
-After entering the virtual environment, we can install the igraph module for python3.6 using pip:
+After entering the virtual environment, you can install the igraph module for python3.6 using pip:
 
 `python3.6 -m pip install python-igraph`
 
@@ -50,19 +50,20 @@ where the arguments are:
 ```
 arguments:
   -h, --help            show this help message and exit
-  -m MODE               Choose a mode to run the script from two options: 
-                        1) sequence, 2) structure.
+  -m MODE               Choose a mode to run the script from two options: 1)
+                        sequence, 2) structure.
   -s PEP_SEQ            Sequence of peptide to be analyzed
   -p PEP_STR            Structure that will be used for the analysis
   -c PEP_CHAIN          Chain of the peptide in the structure
-  -b PEP_CONFORMATION   Conformation of the peptide in the structure that will
-                        be used to plot hydrogen bonds. This can be infered from the PDB file. Options: linear, cyclic
-  -d DSSP_ROUTE         Route where the mkdssp program is located. By default it is located in the auxiliar folder
-  -t CONTACT_THRESHOLD  Threshold (in angstroms) to count contacts between the peptide and
-                        the protein
+  -b PEP_CONFORMATION   Conformation of the peptide. Options: linear
+                        (default), cyclic
+  -d DSSP_ROUTE         Route where the mkdssp program is located. By default
+                        it is located in the auxiliar folder
+  -t CONTACT_THRESHOLD  Threshold (in angstroms) to count contacts between the
+                        peptide and the protein
  ```
  
-The main argument required is the mode, which is *sequence* or *structure* depending on the analysis. If the *sequence* mode is selected, an amino acid string should be provided. The *structure* mode is selected, various arguments should be provided. These include the path to the PDB file having the peptide alone or in complex with a protein, the chain ID of the peptide in the structure, the conformation of the peptide (by default it is *linear*, or can be *cyclic*), and a contact threshold to count the interactions of the peptide with the protein chains (by default is *4.0* (angstroms)).
+The main argument required is the mode, which is *sequence* or *structure* depending on the analysis. If the *sequence* mode is selected, an amino acid string should be provided. If the *structure* mode is selected, various arguments should be provided. These include the path to the PDB file having the peptide alone or in complex with a protein, the chain ID of the peptide in the structure, the conformation of the peptide (by default it is *linear*, or can be *cyclic*), and a contact threshold to count the interactions of the peptide with the protein chains (the default is *4.0* (angstroms)).
 
 PepFun can be also ran as a module within another script to use its functionalities and combine the output with other tools. See the Jupyter Tutorial for examples (tutorial_PepFun.ipynb). 
 
@@ -114,9 +115,7 @@ ed as stable, a value above 40 predicts as unstable.
 - Crippen LogP: estimation of the octanol/water partition coefficient using the Ghose/Crippen approach available in the RDKit project.
 ###########################################
 
-Additional information of the rules:
-NOTE: A set of empirical rules are provided. The higher the number of rules violated, the lower the probability to be solubilized or synthesize
-d experimentally (https://bioserv.rpbs.univ-paris-diderot.fr/services/SolyPep/).
+The last two results are the number of solubility and synthesis rules violated. The higher the number of rules violated, the lower the probability to be solubilized or synthesized experimentally (https://bioserv.rpbs.univ-paris-diderot.fr/services/SolyPep/).
 
 *List of solubility rules violations:
 1. Discard if the number of charged and/or of hydrophobic amino acids exceeds 45%
@@ -131,7 +130,6 @@ d experimentally (https://bioserv.rpbs.univ-paris-diderot.fr/services/SolyPep/).
 3. Discard if the sequences ends with N or Q residues
 4. Discard if there are charged residues every 5 amino acids
 5. Discard if there are oxidation-sensitive amino acids (M, C or W)
-
 ```
 
 In addition, a file named `structure_[sequence].pdb` will contain the peptide structure predicted by the conformer option in RDKit (see main publication), which will have the correct numeration and order of the amino acids based on the input sequence.
