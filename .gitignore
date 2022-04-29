@@ -1,0 +1,11 @@
+# env
+.vscode/
+.DS_Store
+*.env
+__pycache__
+.ipynb_checkpoints
+auxiliar
+
+# result files
+*.pdb
+*.txt
