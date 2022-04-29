@@ -604,7 +604,7 @@ class peptide_sequence:
         
         # Generate the conformer using UFF force field
         print("Generating the basic conformer for peptide {}".format(self.sequence))
-        AllChem.EmbedMolecule(mol)
+        AllChem.EmbedMolecule(mol, maxAttempts=5000) # maxAttempts UP related to https://github.com/rdkit/rdkit/issues/1433
         AllChem.UFFOptimizeMolecule(mol)
         
         # Write PDB file 
