@@ -55,6 +55,8 @@ arguments:
   -s PEP_SEQ            Sequence of peptide to be analyzed
   -p PEP_STR            Structure that will be used for the analysis
   -c PEP_CHAIN          Chain of the peptide in the structure
+  -r CONFORMER_MODE     Mode to generate the basic peptide conformer. 
+                        Options: rdkit (default), modeller (with SS restraints).
   -b PEP_CONFORMATION   Conformation of the peptide. Options: linear
                         (default), cyclic
   -d DSSP_ROUTE         Route where the mkdssp program is located. By default
@@ -131,7 +133,7 @@ The last two results are the number of solubility and synthesis rules violated. 
 5. Discard if there are oxidation-sensitive amino acids (M, C or W)
 ```
 
-In addition, a file named `structure_[sequence].pdb` will contain the peptide structure predicted by the conformer option in RDKit (see main publication), which will have the correct numeration and order of the amino acids based on the input sequence.
+In addition, a file named `structure_[sequence].pdb` will contain the peptide structure predicted by the conformer option in RDKit (see main publication), which will have the correct numeration and order of the amino acids based on the input sequence. With the `-r modeller` option it is possible to predict the conformer using Modeller together with secondary structure restraints to be more accurate about the prediction. 
 
 
 ### Calculate structural information of a protein-peptide complex

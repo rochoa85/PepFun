@@ -63,6 +63,12 @@ from rdkit.Chem import Crippen
 from rdkit.Chem import Lipinski
 from rdkit.Chem import Descriptors
 
+# Modeller
+# Modeller
+import modeller
+from modeller import *
+from modeller.automodel import *
+
 ########################################################################################
 # General Functions
 ########################################################################################
@@ -664,7 +670,206 @@ class peptide_sequence:
                 hits.append(dict_hits)
         
         return hits
-                
+
+    ########################################################################################
+
+    def run_psipred(self, path='./auxiliar/'):
+        '''
+        Run PSIPRED locally to assign the secondary structure
+
+        :param path: Folder containing the psipred software
+        :return: A string with the predicted SS. H: Helix, E: Strand,Sheet, C: Coil
+        '''
+        # Run PSIPRED
+        fastaFile = open('{}.fasta'.format(self.sequence), 'w')
+        fastaFile.write('>sequence\n')
+        fastaFile.write('{}\n'.format(self.sequence))
+        fastaFile.close()
+
+        os.system('{}runpsipred_single {}.fasta'.format(path, self.sequence))
+        bash = 'grep Pred {}.horiz | cut -f 2 -d " "'.format(self.sequence)
+        ss_PSI = str(subprocess.check_output(['bash', '-c', bash]).strip().decode('utf-8'))
+        os.system('rm {}*'.format(sequence))
+
+        print(ss_PSI)
+        return ss_PSI
+
+    ############################################################################
+    def prepare_modeller(self, ss_ref):
+        '''
+        Protocol to generate all the parameters required for Modeller, including the RDKit template
+
+        :param ss_ref: Secondary structure assigned to the peptide
+        :return: Input parameters to run Modeller
+        '''
+        pos = int(len(self.sequence) / 2)
+        pepT = ""
+        pepM = ""
+        for i, ch in enumerate(self.sequence):
+            if i < pos:
+                pepT += "-"
+                pepM += ch
+            elif i == pos:
+                pepT += ch
+                pepM += ch
+            else:
+                pepT += "-"
+                pepM += ch
+
+        amino = self.sequence[pos:pos + 1]
+        baseMol = Chem.MolFromHELM("PEPTIDE1{%s}$$$$" % amino)
+        # baseMol = Chem.AddHs(baseMol)
+        ps = AllChem.ETKDGv3()
+        ps.randomSeed = 0xf00d
+        AllChem.EmbedMolecule(baseMol, ps)
+
+        # Write PDB file
+        molfile = open('template.pdb', 'w')
+        molfile.write(Chem.MolToPDBBlock(baseMol))
+        molfile.close()
+
+        rangeHelix = []
+        rangeBeta = []
+        if ss_ref.count('H') > 2 or ss_ref.count('G') > 2:
+            positions = {}
+            count_groups = 0
+            prev = '-'
+            for i, ele in enumerate(ss_ref):
+                if ele == 'H' or ele == 'G':
+                    if ele != prev:
+                        count_groups += 1
+                        positions[count_groups] = [i + 1]
+                    elif ele == prev:
+                        positions[count_groups].append(i + 1)
+                prev = ele
+            rangeHelix = []
+            for group in positions:
+                rangeHelix.append((min(positions[group]), max(positions[group])))
+
+        if ss_ref.count('E') > 2 or ss_ref.count('B') > 2:
+            positions = {}
+            count_groups = 0
+            prev = '-'
+            for i, ele in enumerate(ss_ref):
+                if ele == 'E' or ele == 'B':
+                    if ele != prev:
+                        count_groups += 1
+                        positions[count_groups] = [i + 1]
+                    elif ele == prev:
+                        positions[count_groups].append(i + 1)
+                prev = ele
+            rangeBeta = []
+            for group in positions:
+                rangeBeta.append((min(positions[group]), max(positions[group])))
+
+        # To add a cycle constraint
+        rangeCycle = ()
+        positions = []
+        for i, aa in enumerate(sequence):
+            if aa == 'C':
+                if i <= 1 or i >= len(sequence) - 2:
+                    positions.append(i + 1)
+        if len(positions) == 2:
+            rangeCycle = (positions[0], positions[1])
+
+        return pepT, pepM, rangeHelix, rangeBeta, rangeCycle
+
+    ########################################################################################
+
+    def modelling_modeller(self, pepT, pepM, rangeHelix, rangeBeta, rangeCycle):
+        '''
+        Function to use modeller in ab-initio mode based on a peptide template
+
+        :param pepT: Sequence used as template
+        :param pepM: Sequence to model
+        :param rangeHelix: List of tuples with regions containing alpha-helix
+        :param rangeBeta: List of tuples with regions containing beta sheets/strands
+        :param rangeCycle: Tuple with the residues creating the cycle
+        :return: A PDB file with the predicted peptide structure
+        '''
+
+        # Start the Modeller environment
+        code = 'template'
+        e = modeller.environ()
+        m = modeller.model(e, file=code)
+        aln = modeller.alignment(e)
+        aln.append_model(m, align_codes=code)
+        aln.write(file=code + '.seq')
+
+        # Edit the information of the sequence to store the sequences in the Modeller format
+        infoSeq = [x.strip() for x in open(code + '.seq')]
+        header = []
+        sequenceLine = ''
+        for info in infoSeq:
+            if ">" not in info and ":" not in info:
+                if info:
+                    sequenceLine += info
+            else:
+                if info: header.append(info)
+
+        # Store the sequences in variables according to Modeller format
+        sequenceTemp = pepT + "*"
+        sequenceMod = pepM + "*"
+
+        seqTempList = [sequenceTemp]
+        seqModList = [sequenceMod]
+
+        # Create the alignment file
+        alignmentFile = open("alignment.ali", "w")
+        for h in header: alignmentFile.write(h + "\n")
+        for s in seqTempList: alignmentFile.write(s + "\n")
+        alignmentFile.write("\n>P1;template_fill\nsequence:::::::::\n")
+        for s in seqModList: alignmentFile.write(s + "\n")
+        alignmentFile.close()
+
+        # Directories for input atom files
+        e.io.atom_files_directory = ['.', '../atom_files']
+
+        if len(rangeHelix) >= 1 or len(rangeBeta) >= 1:
+            class MyModel(automodel):
+                def special_patches(self, aln):
+                    if len(rangeCycle) >= 1:
+                        self.patch(residue_type='DISU', residues=(self.residues['{}:A'.format(rangeCycle[0])],
+                                                                  self.residues['{}:A'.format(rangeCycle[1])]))
+
+                def special_restraints(self, aln):
+                    rsr = self.restraints
+                    at = self.atoms
+                    if len(rangeHelix) >= 1:
+                        for pairHelix in rangeHelix:
+                            rsr.add(secondary_structure.alpha(
+                                self.residue_range('{}:A'.format(pairHelix[0]), '{}:A'.format(pairHelix[1]))))
+
+                    if len(rangeBeta) >= 1:
+                        extremes = []
+                        for j, pairBeta in enumerate(rangeBeta):
+                            rsr.add(secondary_structure.strand(
+                                self.residue_range('{}:A'.format(pairBeta[0]), '{}:A'.format(pairBeta[1]))))
+                            if j == 0: extremes.append(pairBeta[0])
+                            if j == 1: extremes.append(pairBeta[1])
+                        rsr.add(secondary_structure.sheet(at['N:{}:A'.format(extremes[0])],
+                                                          at['O:{}:A'.format(extremes[1])],
+                                                          sheet_h_bonds=-5))
+                    if len(rangeCycle) >= 1:
+                        rsr.add(forms.gaussian(group=physical.xy_distance,
+                                               feature=features.distance(at['SG:{}:A'.format(rangeCycle[0])],
+                                                                         at['SG:{}:A'.format(rangeCycle[1])]),
+                                               mean=2.0, stdev=0.1))
+
+            a = MyModel(e, alnfile='alignment.ali', knowns='template', sequence='template_fill')
+            a.starting_model = 1
+            a.ending_model = 1
+            a.make()
+        else:
+            a = automodel(e, alnfile='alignment.ali', knowns='template', sequence='template_fill')
+            a.starting_model = 1
+            a.ending_model = 1
+            a.make()
+
+        os.system("mv template_fill.B99990001.pdb modeller_{}.pdb".format(self.sequence))
+        os.system("rm template* alignment.ali")
+
+
 ########################################################################################
     
 class peptide_structure:
@@ -741,9 +946,11 @@ class peptide_structure:
         for keys in list(dssp.keys()):
             if keys[0]==self.chain:
                 position=keys[1][1]
+                position=counter
                 self.positions[position]["dssp"]=dssp[keys][2]
                 self.positions[position]["asa"]=dssp[keys][3]
                 self.total_dssp=self.total_dssp+dssp[keys][2]
+                counter+=1
     
     ############################################################################
     
@@ -995,6 +1202,8 @@ if __name__ == '__main__':
                         help='Structure that will be used for the analysis')
     parser.add_argument('-c', dest='pep_chain', action='store',
                         help='Chain of the peptide in the structure')
+    parser.add_argument('-r', dest='conformer_mode', action='store', default="rdkit",
+                        help='Mode to generate the basic peptide conformer. Options: rdkit (default), modeller (with SS restraints).')
     parser.add_argument('-b', dest='pep_conformation', action='store',default="linear",
                         help='Conformation of the peptide. Options: linear (default), cyclic')
     parser.add_argument('-d', dest='dssp_route', action='store',
@@ -1071,7 +1280,15 @@ if __name__ == '__main__':
         
         print("### Done ###")
         print("### 2. Prediction of basic conformer ... ###")
-        pep.generate_conformer()
+        if args.conformer_mode == "rdkit":
+            pep.generate_conformer()
+        if args.conformer_mode == "modeller":
+            ss_ref = pep.run_psipred()
+            if not ss_ref: ss_ref = 'C' * len(sequence)
+            # Obtain data for Modeller
+            pepT, pepM, rangeHelix, rangeBeta, rangeCycle = pep.prepare_modeller(ss_ref)
+            # Run Modeller with restraints
+            pep.modelling_modeller(pepT, pepM, rangeHelix, rangeBeta, rangeCycle)
         print("### Done ###")
         
         sequence_report.write("###########################################\n")
