@@ -689,7 +689,7 @@ class peptide_sequence:
         os.system('{}runpsipred_single {}.fasta'.format(path, self.sequence))
         bash = 'grep Pred {}.horiz | cut -f 2 -d " "'.format(self.sequence)
         ss_PSI = str(subprocess.check_output(['bash', '-c', bash]).strip().decode('utf-8'))
-        os.system('rm {}*'.format(sequence))
+        os.system('rm {}*'.format(self.sequence))
 
         print(ss_PSI)
         return ss_PSI
@@ -765,9 +765,9 @@ class peptide_sequence:
         # To add a cycle constraint
         rangeCycle = ()
         positions = []
-        for i, aa in enumerate(sequence):
+        for i, aa in enumerate(self.sequence):
             if aa == 'C':
-                if i <= 1 or i >= len(sequence) - 2:
+                if i <= 1 or i >= len(self.sequence) - 2:
                     positions.append(i + 1)
         if len(positions) == 2:
             rangeCycle = (positions[0], positions[1])
