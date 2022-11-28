@@ -943,6 +943,7 @@ class peptide_structure:
         self.total_dssp=""
         
         # Loop over the keys from the dssp response to store ss and asa values
+        counter=1
         for keys in list(dssp.keys()):
             if keys[0]==self.chain:
                 position=keys[1][1]
