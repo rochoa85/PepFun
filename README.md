@@ -27,6 +27,12 @@ After entering the virtual environment, you can install the igraph module for py
 
 `python3.6 -m pip install python-igraph`
 
+**EXTRA**: An addition was included to predict peptide conformers using MODELLER and PSIPRED. To install modeller with conda use the following command:
+
+`conda install -c salilab modeller`
+
+After that, add the academic license key in the file suggested. The license can be acquired in the Modeller website: https://salilab.org/modeller/registration.html
+
 **NOTES:**
 1. If the script is called as a module from a different folder, the path where the pepfun.py script is can be added using the following commands:
 ```
