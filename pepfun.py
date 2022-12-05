@@ -64,10 +64,12 @@ from rdkit.Chem import Lipinski
 from rdkit.Chem import Descriptors
 
 # Modeller
-# Modeller
-import modeller
-from modeller import *
-from modeller.automodel import *
+try:
+    import modeller
+    from modeller import *
+    from modeller.automodel import *
+except ImportError:
+    pass
 
 ########################################################################################
 # General Functions
