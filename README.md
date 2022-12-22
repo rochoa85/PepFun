@@ -2,7 +2,7 @@
 
 ## Bioinformatics and cheminformatics protocols for peptide analysis
 
-* From publication "PepFun: open source protocols for peptide-related computational analysis"
+* From publication "PepFun: open source protocols for peptide-related computational analysis". Link: https://www.mdpi.com/1420-3049/26/6/1664
 * Molecules, 2021
 * Authors: Rodrigo Ochoa, Pilar Cossio
 
